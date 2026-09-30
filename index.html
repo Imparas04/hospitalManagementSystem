@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MedPulse - Smart Hospital Operations System</title>
+  
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="d-flex" id="wrapper">
+  <!-- Sidebar -->
+  <div id="sidebar-wrapper">
+    <div class="sidebar-heading d-flex align-items-center gap-2">
+      <i class="bi bi-hospital text-primary fs-4"></i>
+      <span>MedPulse HMS</span>
+    </div>
+    <div class="list-group list-group-flush my-2">
+      <a href="#dashboard" class="list-group-item active"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+      <a href="#patients" class="list-group-item"><i class="bi bi-people"></i> Patients</a>
+      <a href="#emergency" class="list-group-item"><i class="bi bi-heart-pulse-fill text-danger"></i> Emergency & Triage</a>
+      <a href="#beds" class="list-group-item"><i class="bi bi-hospital-fill"></i> Beds & Wards</a>
+      <a href="#doctors" class="list-group-item"><i class="bi bi-person-badge"></i> Doctors</a>
+      <a href="#laboratory" class="list-group-item"><i class="bi bi-eyedropper"></i> Laboratory</a>
+      <a href="#pharmacy" class="list-group-item"><i class="bi bi-capsule"></i> Pharmacy</a>
+      <a href="#billing" class="list-group-item"><i class="bi bi-receipt"></i> Billing</a>
+      <a href="#reports" class="list-group-item"><i class="bi bi-bar-chart"></i> Reports</a>
+      <a href="#audit" class="list-group-item"><i class="bi bi-shield-check"></i> Audit Logs</a>
+    </div>
+  </div>
+
+  <!-- Page Content -->
+  <div id="page-content-wrapper" class="w-100">
+    <!-- Top Navbar -->
+    <nav class="top-navbar d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center gap-3">
+        <span class="badge bg-primary px-3 py-2" id="current-role-badge">Super Admin</span>
+        <select class="form-select form-select-sm w-auto" id="role-select">
+          <option value="Super Admin" selected>Switch Role: Admin</option>
+          <option value="Doctor">Doctor</option>
+          <option value="Nurse">Nurse</option>
+          <option value="Receptionist">Receptionist</option>
+          <option value="Lab Tech">Lab Tech</option>
+          <option value="Pharmacist">Pharmacist</option>
+          <option value="Billing Staff">Billing Staff</option>
+        </select>
+      </div>
+
+      <div class="d-flex align-items-center gap-3">
+        <span class="text-muted small"><i class="bi bi-clock"></i> <span id="live-clock">--:--:--</span></span>
+        <div class="dropdown">
+          <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+            <i class="bi bi-person-circle"></i> Dr. Admin
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="#">Profile</a></li>
+            <li><a class="dropdown-item" href="#">Settings</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item text-danger" href="#">Logout</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container-fluid p-4">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h3 class="fw-bold mb-0">Hospital Operations Center</h3>
+          <p class="text-muted small">Real-time clinical metrics & patient throughput</p>
+        </div>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAddPatient">
+          <i class="bi bi-plus-circle me-1"></i> Register New Patient
+        </button>
+      </div>
+
+      <!-- 8 Top KPI Cards -->
+      <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-md-6">
+          <div class="card p-3 kpi-card">
+            <div class="d-flex justify-content-between">
+              <div>
+                <span class="text-muted small text-uppercase fw-semibold">Total Patients</span>
+                <h3 class="fw-bold my-1" id="kpi-total-patients">0</h3>
+                <small class="text-success"><i class="bi bi-arrow-up-right"></i> +12% this week</small>
+              </div>
+              <div class="kpi-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-people"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+          <div class="card p-3 kpi-card">
+            <div class="d-flex justify-content-between">
+              <div>
+                <span class="text-muted small text-uppercase fw-semibold">Today's Appointments</span>
+                <h3 class="fw-bold my-1" id="kpi-today-appts">0</h3>
+                <small class="text-primary"><i class="bi bi-calendar-check"></i> On schedule</small>
+              </div>
+              <div class="kpi-icon bg-info bg-opacity-10 text-info"><i class="bi bi-calendar2-week"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+          <div class="card p-3 kpi-card">
+            <div class="d-flex justify-content-between">
+              <div>
+                <span class="text-muted small text-uppercase fw-semibold">Available Beds</span>
+                <h3 class="fw-bold my-1 text-success" id="kpi-available-beds">0</h3>
+                <small class="text-muted">Total capacity: 100</small>
+              </div>
+              <div class="kpi-icon bg-success bg-opacity-10 text-success"><i class="bi bi-check2-circle"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+          <div class="card p-3 kpi-card">
+            <div class="d-flex justify-content-between">
+              <div>
+                <span class="text-muted small text-uppercase fw-semibold">Occupied Beds</span>
+                <h3 class="fw-bold my-1 text-danger" id="kpi-occupied-beds">0</h3>
+                <small class="text-danger">76% occupancy</small>
+              </div>
+              <div class="kpi-icon bg-danger bg-opacity-10 text-danger"><i class="bi bi-hospital"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+          <div class="card p-3 kpi-card">
+            <div class="d-flex justify-content-between">
+              <div>
+                <span class="text-muted small text-uppercase fw-semibold">Emergency Triage</span>
+                <h3 class="fw-bold my-1 text-danger" id="kpi-emergency">0</h3>
+                <small class="text-danger"><i class="bi bi-exclamation-triangle"></i> Urgent action</small>
+              </div>
+              <div class="kpi-icon bg-danger bg-opacity-10 text-danger"><i class="bi bi-heart-pulse"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+          <div class="card p-3 kpi-card">
+            <div class="d-flex justify-content-between">
+              <div>
+                <span class="text-muted small text-uppercase fw-semibold">Pending Lab Tests</span>
+                <h3 class="fw-bold my-1" id="kpi-lab-tests">0</h3>
+                <small class="text-warning">In pipeline</small>
+              </div>
+              <div class="kpi-icon bg-warning bg-opacity-10 text-warning"><i class="bi bi-eyedropper"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+          <div class="card p-3 kpi-card">
+            <div class="d-flex justify-content-between">
+              <div>
+                <span class="text-muted small text-uppercase fw-semibold">Low Stock Drugs</span>
+                <h3 class="fw-bold my-1 text-danger" id="kpi-low-stock">0</h3>
+                <small class="text-danger">Restock soon</small>
+              </div>
+              <div class="kpi-icon bg-danger bg-opacity-10 text-danger"><i class="bi bi-capsule"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+          <div class="card p-3 kpi-card">
+            <div class="d-flex justify-content-between">
+              <div>
+                <span class="text-muted small text-uppercase fw-semibold">Today's Revenue</span>
+                <h3 class="fw-bold my-1 text-success" id="kpi-revenue">₹0</h3>
+                <small class="text-success"><i class="bi bi-arrow-up-right"></i> Target reached</small>
+              </div>
+              <div class="kpi-icon bg-success bg-opacity-10 text-success"><i class="bi bi-cash-stack"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+          <div class="card p-3 h-100">
+            <h6 class="fw-bold mb-3"><i class="bi bi-graph-up me-2"></i>Patient Registrations (Last 7 Days)</h6>
+            <canvas id="chart-patient-trend" height="110"></canvas>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="card p-3 h-100">
+            <h6 class="fw-bold mb-3"><i class="bi bi-pie-chart me-2"></i>Bed Occupancy Ratio</h6>
+            <div class="d-flex justify-content-center">
+              <div style="max-width: 210px; width: 100%;">
+                <canvas id="chart-bed-status"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tables Row: Emergency Queue & Active Patients -->
+      <div class="row g-4">
+        <div class="col-xl-5">
+          <div class="card p-3 h-100">
+            <h6 class="fw-bold text-danger mb-3"><i class="bi bi-exclamation-octagon-fill me-1"></i> Emergency & Triage Live Queue</h6>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th>Triage</th>
+                    <th>Patient</th>
+                    <th>Vitals</th>
+                    <th>Doctor</th>
+                    <th>Bed</th>
+                    <th>Arrival</th>
+                  </tr>
+                </thead>
+                <tbody id="emergency-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-xl-7">
+          <div class="card p-3 h-100">
+            <h6 class="fw-bold text-primary mb-3"><i class="bi bi-people-fill me-1"></i> Active Patients Registry</h6>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle">
+                <thead class="table-light">
+                  <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Demographics</th>
+                    <th>Phone</th>
+                    <th>Department</th>
+                    <th>Doctor</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="patients-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Register New Patient -->
+<div class="modal fade" id="modalAddPatient" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Register New Patient</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="add-patient-form">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Full Name</label>
+            <input type="text" id="pt-name" class="form-control" required placeholder="Enter full name">
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label small fw-bold">Age</label>
+              <input type="number" id="pt-age" class="form-control" required placeholder="Age">
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-bold">Gender</label>
+              <select id="pt-gender" class="form-select" required>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Phone Number</label>
+            <input type="tel" id="pt-phone" class="form-control" required placeholder="10-digit number">
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label small fw-bold">Department</label>
+              <select id="pt-dept" class="form-select" required>
+                <option value="General Medicine">General Medicine</option>
+                <option value="Cardiology">Cardiology</option>
+                <option value="Neurology">Neurology</option>
+                <option value="Orthopedics">Orthopedics</option>
+                <option value="Pediatrics">Pediatrics</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-bold">Assign Doctor</label>
+              <select id="pt-doctor" class="form-select" required>
+                <option value="Dr. A. Verma">Dr. A. Verma</option>
+                <option value="Dr. S. Mehta">Dr. S. Mehta</option>
+                <option value="Dr. K. Rao">Dr. K. Rao</option>
+                <option value="Dr. R. Iyer">Dr. R. Iyer</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save & Register</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap 5 Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- App Scripts -->
+<script src="js/store.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
