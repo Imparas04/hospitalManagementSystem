@@ -1,6 +1,6 @@
 # Smart Hospital Operations, Emergency & Resource Management System - Backend
 
-**Current state: Phase 1 - Project Setup + Database + Authentication + RBAC**
+**Current state: Phase 2 - Patient Management** (includes everything from Phase 1)
 
 Stack: Python, Flask (REST API), MySQL, SQLAlchemy, JWT (Flask-JWT-Extended), PyMySQL, pytest.
 (Pandas/NumPy/PDF libraries are added in the phases that use them - Phase 6 and 7.)
@@ -13,9 +13,9 @@ backend/
 │   ├── config.py            # settings read from .env
 │   ├── extensions.py        # db, jwt, cors objects
 │   ├── cli.py               # flask init-db / seed-roles / create-admin / seed-demo-users
-│   ├── models/              # database tables as Python classes (Role, User)
-│   ├── routes/              # API endpoints (auth, users, health)
-│   ├── services/            # business logic (login, user creation)
+│   ├── models/              # database tables as Python classes (Role, User, Patient, ...)
+│   ├── routes/              # API endpoints (auth, users, health, patients)
+│   ├── services/            # business logic (login, user creation, patient registration)
 │   ├── middleware/          # login_required / roles_required / permission_required + error handlers
 │   └── utils/               # responses, validators, permissions map
 ├── database/                # schema.sql, seed.sql, queries.sql
@@ -75,7 +75,16 @@ pytest -v
 More in `docs/TESTING_Phase_01.md`.
 
 ## API documentation
-`docs/API_Phase_01.md` (endpoints, headers, bodies, responses, roles, JS examples) and `postman/Hospital_Phase01.postman_collection.json`.
+- Phase 1 (auth, users, RBAC): `docs/API_Phase_01.md` + `postman/Hospital_Phase01.postman_collection.json`
+- Phase 2 (patients): `docs/API_Phase_02.md` + `postman/Hospital_Phase02.postman_collection.json`
+
+## Phase 2 - what was added
+- `patients`, `medical_history`, `visit_history` tables (see `database/schema.sql`)
+- Unique Patient ID generator (`P<year><6-digit sequence>`, e.g. `P2026000001`) - see `app/services/patient_service.py::generate_patient_code`. It locks the last row of the year (`with_for_update`) so two simultaneous registrations can never collide.
+- Full CRUD + search/filter/pagination for patients, with soft delete
+- Emergency registration: minimal fields allowed, `registration_pending` flag so reception finishes the file later
+- Medical history (allergies, chronic conditions, surgeries, notes) and visit history, both tied to the patient
+- RBAC: receptionist creates, receptionist/doctor update, receptionist/doctor/nurse/admin read (see the permission table in `docs/API_Phase_02.md`)
 
 ## How authentication and RBAC work (viva notes)
 
@@ -116,6 +125,9 @@ The role -> permission table lives in ONE file: `app/utils/permissions.py`. On e
 git init
 git add .
 git commit -m "Phase 1: project setup, MySQL config, users/roles, JWT auth, RBAC, tests, docs"
+# ... after Phase 2 work:
+git add .
+git commit -m "Phase 2: patient management, medical/visit history, search, RBAC, tests, docs"
 git branch -M main
 git remote add origin <your-github-repo-url>
 git push -u origin main
@@ -124,8 +136,8 @@ git push -u origin main
 ## Phase roadmap
 | Phase | Scope |
 |---|---|
-| **1 (this)** | Setup, DB foundation, users, roles, login, JWT, RBAC |
-| 2 | Patient management |
+| 1 | Setup, DB foundation, users, roles, login, JWT, RBAC |
+| **2 (this)** | Patient management |
 | 3 | Departments, doctors, appointments, wards/beds, admissions |
 | 4 | Emergency, triage, priority queue, smart bed allocation |
 | 5 | Laboratory + pharmacy |

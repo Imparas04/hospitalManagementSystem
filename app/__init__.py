@@ -24,10 +24,11 @@ def create_app(config_class=Config):
     from app import models  # noqa: F401
 
     # Routes (blueprints)
-    from app.routes import auth, health, users
+    from app.routes import auth, health, patients, users
     app.register_blueprint(health.bp)
     app.register_blueprint(auth.bp)
     app.register_blueprint(users.bp)
+    app.register_blueprint(patients.bp)
 
     from app.middleware.error_handlers import register_error_handlers
     register_error_handlers(app)
