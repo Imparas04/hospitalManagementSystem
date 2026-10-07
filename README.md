@@ -1,6 +1,6 @@
 # Smart Hospital Operations, Emergency & Resource Management System - Backend
 
-**Current state: Phase 2 - Patient Management** (includes everything from Phase 1)
+**Current state: Phase 3 - Doctor, Appointment & Admission** (includes everything from Phases 1-2)
 
 Stack: Python, Flask (REST API), MySQL, SQLAlchemy, JWT (Flask-JWT-Extended), PyMySQL, pytest.
 (Pandas/NumPy/PDF libraries are added in the phases that use them - Phase 6 and 7.)
@@ -13,9 +13,9 @@ backend/
 │   ├── config.py            # settings read from .env
 │   ├── extensions.py        # db, jwt, cors objects
 │   ├── cli.py               # flask init-db / seed-roles / create-admin / seed-demo-users
-│   ├── models/              # database tables as Python classes (Role, User, Patient, ...)
-│   ├── routes/              # API endpoints (auth, users, health, patients)
-│   ├── services/            # business logic (login, user creation, patient registration)
+│   ├── models/              # database tables as Python classes (Role, User, Patient, Doctor, Appointment, ...)
+│   ├── routes/              # API endpoints (auth, users, health, patients, doctors, appointments, admissions)
+│   ├── services/            # business logic (login, user creation, patient registration, booking, admission)
 │   ├── middleware/          # login_required / roles_required / permission_required + error handlers
 │   └── utils/               # responses, validators, permissions map
 ├── database/                # schema.sql, seed.sql, queries.sql
@@ -77,6 +77,18 @@ More in `docs/TESTING_Phase_01.md`.
 ## API documentation
 - Phase 1 (auth, users, RBAC): `docs/API_Phase_01.md` + `postman/Hospital_Phase01.postman_collection.json`
 - Phase 2 (patients): `docs/API_Phase_02.md` + `postman/Hospital_Phase02.postman_collection.json`
+- Phase 3 (doctors, appointments, admissions): `docs/API_Phase_03.md` + `postman/Hospital_Phase03.postman_collection.json`
+
+## Phase 3 - what was added
+- `departments`, `doctors`, `doctor_schedules`, `appointments`, `wards`, `beds`, `admissions` tables (see `database/schema.sql`)
+- **Doctor profile:** links an existing user (role `doctor`) to a department + specialization; weekly recurring schedule blocks (e.g. "Mon 09:00-13:00, 15-min slots")
+- **Computed availability:** `GET /api/doctors/<id>/availability?date=...` works out free slots from the weekly schedule minus already-booked appointments on that date
+- **Appointment booking with automatic waiting list:** booking a taken slot does not fail - the appointment is created as `waitlisted` instead (unless the caller opts out). `POST /appointments/<id>/promote` moves a waitlisted appointment into its slot once it frees up (e.g. after a cancellation)
+- **Appointment lifecycle:** scheduled -> completed / cancelled / no_show, plus reschedule with conflict re-checking
+- **Wards & beds:** admin sets up wards and beds; nurse/admin can mark a bed under maintenance; a bed cannot be freed except by discharging its patient
+- **Admissions:** admit a patient to a specific available bed (occupies it); discharge frees the bed automatically
+- Bed selection here is **manual** (reception/nursing choose the `bed_id`). Automatic *smart* bed allocation (ward type + bed type + gender + ICU/isolation + emergency priority) is Phase 4, built on this same foundation
+- RBAC: admin manages departments/doctors/wards/beds; receptionist books appointments and admits patients; doctor/nurse update what's in their scope; lab/pharmacy/billing have no access to this phase's APIs
 
 ## Phase 2 - what was added
 - `patients`, `medical_history`, `visit_history` tables (see `database/schema.sql`)
@@ -128,6 +140,9 @@ git commit -m "Phase 1: project setup, MySQL config, users/roles, JWT auth, RBAC
 # ... after Phase 2 work:
 git add .
 git commit -m "Phase 2: patient management, medical/visit history, search, RBAC, tests, docs"
+# ... after Phase 3 work:
+git add .
+git commit -m "Phase 3: doctors, appointments with waiting list, wards/beds, admissions, RBAC, tests, docs"
 git branch -M main
 git remote add origin <your-github-repo-url>
 git push -u origin main
@@ -137,8 +152,8 @@ git push -u origin main
 | Phase | Scope |
 |---|---|
 | 1 | Setup, DB foundation, users, roles, login, JWT, RBAC |
-| **2 (this)** | Patient management |
-| 3 | Departments, doctors, appointments, wards/beds, admissions |
+| 2 | Patient management |
+| **3 (this)** | Departments, doctors, appointments, wards/beds, admissions |
 | 4 | Emergency, triage, priority queue, smart bed allocation |
 | 5 | Laboratory + pharmacy |
 | 6 | Billing, payments, discharge, PDF |

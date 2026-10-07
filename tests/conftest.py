@@ -42,3 +42,36 @@ def auth_header():
     def _make(client, role):
         return {"Authorization": f"Bearer {login(client, role)}"}
     return _make
+
+
+@pytest.fixture()
+def doctor_setup(client, auth_header):
+    """Creates a department and a Doctor profile for the standard t_doctor user.
+    Returns {"department": {...}, "doctor": {...}}."""
+    admin = auth_header(client, "admin")
+    dept = client.post("/api/departments", headers=admin, json={"name": "Cardiology"}).get_json()["data"]
+    doctor_user_id = client.get("/api/auth/me", headers=auth_header(client, "doctor")).get_json()["data"]["id"]
+    doc = client.post("/api/doctors", headers=admin, json={
+        "user_id": doctor_user_id, "department_id": dept["id"], "specialization": "Cardiologist",
+    }).get_json()["data"]
+    return {"department": dept, "doctor": doc}
+
+
+@pytest.fixture()
+def patient_id(client, auth_header):
+    """Registers one standard patient and returns its id."""
+    r = client.post("/api/patients", headers=auth_header(client, "receptionist"), json={
+        "full_name": "Ramesh Kulkarni", "date_of_birth": "1990-05-15", "gender": "male",
+        "phone": "+919876543210",
+    })
+    return r.get_json()["data"]["id"]
+
+
+@pytest.fixture()
+def ward_and_bed(client, auth_header):
+    """Creates one general ward with one available bed. Returns {"ward": {...}, "bed": {...}}."""
+    admin = auth_header(client, "admin")
+    ward = client.post("/api/wards", headers=admin, json={"name": "General Ward A", "ward_type": "general"}).get_json()["data"]
+    bed = client.post(f"/api/wards/{ward['id']}/beds", headers=admin,
+                       json={"bed_number": "A-101", "bed_type": "general"}).get_json()["data"]
+    return {"ward": ward, "bed": bed}

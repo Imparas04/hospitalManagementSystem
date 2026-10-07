@@ -97,6 +97,143 @@ def validate_visit_payload(data):
     return errors
 
 
+def _is_hhmm(value):
+    try:
+        import datetime as _dt
+        _dt.datetime.strptime(value, "%H:%M")
+        return True
+    except (ValueError, TypeError):
+        return False
+
+
+def _is_yyyymmdd(value):
+    try:
+        import datetime as _dt
+        _dt.datetime.strptime(value, "%Y-%m-%d")
+        return True
+    except (ValueError, TypeError):
+        return False
+
+
+def validate_department_payload(data, partial=False):
+    errors = {}
+    if not partial and not (isinstance(data.get("name"), str) and data["name"].strip()):
+        errors["name"] = "Department name is required"
+    elif "name" in data and (not isinstance(data["name"], str) or not 2 <= len(data["name"].strip()) <= 100):
+        errors["name"] = "Department name must be 2-100 characters"
+    if "is_active" in data and not isinstance(data["is_active"], bool):
+        errors["is_active"] = "is_active must be true or false"
+    return errors
+
+
+def validate_doctor_payload(data, partial=False):
+    errors = {}
+
+    def missing(field):
+        return not partial and (field not in data or data[field] in (None, ""))
+
+    if missing("user_id"):
+        errors["user_id"] = "user_id is required"
+    elif "user_id" in data and not isinstance(data["user_id"], int):
+        errors["user_id"] = "user_id must be a number"
+
+    if missing("department_id"):
+        errors["department_id"] = "department_id is required"
+    elif "department_id" in data and not isinstance(data["department_id"], int):
+        errors["department_id"] = "department_id must be a number"
+
+    if missing("specialization"):
+        errors["specialization"] = "specialization is required"
+    elif "specialization" in data and (not isinstance(data["specialization"], str) or not data["specialization"].strip()):
+        errors["specialization"] = "specialization must not be empty"
+
+    if "is_on_emergency_duty" in data and not isinstance(data["is_on_emergency_duty"], bool):
+        errors["is_on_emergency_duty"] = "is_on_emergency_duty must be true or false"
+    if "is_active" in data and not isinstance(data["is_active"], bool):
+        errors["is_active"] = "is_active must be true or false"
+    return errors
+
+
+def validate_schedule_payload(data):
+    errors = {}
+    day = data.get("day_of_week")
+    if not isinstance(day, int) or not 0 <= day <= 6:
+        errors["day_of_week"] = "day_of_week must be 0 (Monday) to 6 (Sunday)"
+    if not _is_hhmm(data.get("start_time")):
+        errors["start_time"] = "start_time must be in format HH:MM"
+    if not _is_hhmm(data.get("end_time")):
+        errors["end_time"] = "end_time must be in format HH:MM"
+    if "start_time" not in errors and "end_time" not in errors and data["start_time"] >= data["end_time"]:
+        errors["end_time"] = "end_time must be after start_time"
+    slot = data.get("slot_minutes", 15)
+    if not isinstance(slot, int) or not 5 <= slot <= 120:
+        errors["slot_minutes"] = "slot_minutes must be a number between 5 and 120"
+    return errors
+
+
+def validate_appointment_payload(data, partial=False):
+    errors = {}
+
+    def missing(field):
+        return not partial and (field not in data or data[field] in (None, ""))
+
+    for field, label in (("patient_id", "patient_id"), ("doctor_id", "doctor_id")):
+        if missing(field):
+            errors[field] = f"{label} is required"
+        elif field in data and not isinstance(data[field], int):
+            errors[field] = f"{label} must be a number"
+
+    if missing("appointment_date"):
+        errors["appointment_date"] = "appointment_date is required (format YYYY-MM-DD)"
+    elif "appointment_date" in data and not _is_yyyymmdd(data["appointment_date"]):
+        errors["appointment_date"] = "appointment_date must be in format YYYY-MM-DD"
+
+    if missing("appointment_time"):
+        errors["appointment_time"] = "appointment_time is required (format HH:MM)"
+    elif "appointment_time" in data and not _is_hhmm(data["appointment_time"]):
+        errors["appointment_time"] = "appointment_time must be in format HH:MM"
+
+    if missing("reason"):
+        errors["reason"] = "reason is required"
+    elif "reason" in data and (not isinstance(data["reason"], str) or not 2 <= len(data["reason"].strip()) <= 255):
+        errors["reason"] = "reason must be 2-255 characters"
+
+    if "allow_waitlist" in data and not isinstance(data["allow_waitlist"], bool):
+        errors["allow_waitlist"] = "allow_waitlist must be true or false"
+    return errors
+
+
+def validate_ward_payload(data):
+    from app.models.bed import WARD_TYPES
+    errors = {}
+    if not (isinstance(data.get("name"), str) and data["name"].strip()):
+        errors["name"] = "Ward name is required"
+    if data.get("ward_type") not in WARD_TYPES:
+        errors["ward_type"] = f"ward_type must be one of: {', '.join(WARD_TYPES)}"
+    return errors
+
+
+def validate_bed_payload(data):
+    from app.models.bed import BED_TYPES
+    errors = {}
+    if not (isinstance(data.get("bed_number"), str) and data["bed_number"].strip()):
+        errors["bed_number"] = "bed_number is required"
+    if data.get("bed_type") not in BED_TYPES:
+        errors["bed_type"] = f"bed_type must be one of: {', '.join(BED_TYPES)}"
+    return errors
+
+
+def validate_admission_payload(data):
+    errors = {}
+    for field in ("patient_id", "bed_id", "doctor_id"):
+        if not isinstance(data.get(field), int):
+            errors[field] = f"{field} is required and must be a number"
+    reason = data.get("reason")
+    if not isinstance(reason, str) or not 2 <= len(reason.strip()) <= 255:
+        errors["reason"] = "reason is required (2-255 characters)"
+    return errors
+
+
 def validate_user_payload(data, valid_roles, partial=False):
     """Validate the body for creating (partial=False) or updating (partial=True) a user."""
     errors = {}

@@ -13,19 +13,26 @@ ROLE_PERMISSIONS = {
     ROLE_ADMIN: {"*"},
     ROLE_RECEPTIONIST: {
         "patients:read", "patients:create", "patients:update",
+        "doctors:read", "departments:read",
         "appointments:read", "appointments:create", "appointments:update",
-        "admissions:read", "admissions:create",
+        "wards:read", "beds:read",
+        "admissions:read", "admissions:create", "admissions:update",
     },
     ROLE_DOCTOR: {
         "patients:read", "patients:update",
+        "doctors:read", "departments:read",
         "appointments:read", "appointments:update",
+        "wards:read", "beds:read", "admissions:read",
         "prescriptions:read", "prescriptions:create",
         "lab:order", "lab:read", "lab:review",
     },
     ROLE_NURSE: {
         "patients:read",
+        "doctors:read", "departments:read",
+        "appointments:read",
         "vitals:read", "vitals:create",
-        "beds:read", "beds:update", "admissions:read",
+        "wards:read", "beds:read", "beds:update",
+        "admissions:read", "admissions:update",
     },
     ROLE_LAB_TECH: {
         "lab:read", "lab:update", "lab:enter_result",

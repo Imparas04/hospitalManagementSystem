@@ -1,0 +1,641 @@
+{
+  "info": {
+    "name": "Hospital Backend - Phase 3 (Doctor/Appointment/Admission)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000/api"
+    },
+    {
+      "key": "token_admin",
+      "value": ""
+    },
+    {
+      "key": "token_receptionist",
+      "value": ""
+    },
+    {
+      "key": "token_doctor",
+      "value": ""
+    },
+    {
+      "key": "token_nurse",
+      "value": ""
+    },
+    {
+      "key": "doctor_user_id",
+      "value": ""
+    },
+    {
+      "key": "department_id",
+      "value": ""
+    },
+    {
+      "key": "doctor_id",
+      "value": ""
+    },
+    {
+      "key": "patient_id",
+      "value": ""
+    },
+    {
+      "key": "appointment_id",
+      "value": ""
+    },
+    {
+      "key": "ward_id",
+      "value": ""
+    },
+    {
+      "key": "bed_id",
+      "value": ""
+    },
+    {
+      "key": "admission_id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Logins",
+      "item": [
+        {
+          "name": "Login (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"Admin12345\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('token_admin', j.data.access_token); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (receptionist)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"demo_receptionist\",\n  \"password\": \"Demo12345\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('token_receptionist', j.data.access_token); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (doctor) - saves user id too",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"demo_doctor\",\n  \"password\": \"Demo12345\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('token_doctor', j.data.access_token); }",
+                  "if (j.success) { pm.collectionVariables.set('doctor_user_id', j.data.user.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (nurse)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"demo_nurse\",\n  \"password\": \"Demo12345\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('token_nurse', j.data.access_token); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Departments & Doctors",
+      "item": [
+        {
+          "name": "Create department",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/departments",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cardiology\",\n  \"description\": \"Heart care\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('department_id', j.data.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List departments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_receptionist}}"
+              }
+            ],
+            "url": "{{base_url}}/departments"
+          }
+        },
+        {
+          "name": "Create doctor profile (links demo_doctor user)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/doctors",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{doctor_user_id}}\",\n  \"department_id\": \"{{department_id}}\",\n  \"specialization\": \"Cardiologist\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('doctor_id', j.data.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List doctors",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_receptionist}}"
+              }
+            ],
+            "url": "{{base_url}}/doctors?department_id={{department_id}}"
+          }
+        },
+        {
+          "name": "Get doctor (with schedule)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_nurse}}"
+              }
+            ],
+            "url": "{{base_url}}/doctors/{{doctor_id}}"
+          }
+        },
+        {
+          "name": "Add doctor schedule (Mon 09:00-13:00)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/doctors/{{doctor_id}}/schedule",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"day_of_week\": 0,\n  \"start_time\": \"09:00\",\n  \"end_time\": \"13:00\",\n  \"slot_minutes\": 15\n}"
+            }
+          }
+        },
+        {
+          "name": "Doctor availability on a date",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_receptionist}}"
+              }
+            ],
+            "url": "{{base_url}}/doctors/{{doctor_id}}/availability?date=2026-10-12"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Patients (from Phase 2, needed here)",
+      "item": [
+        {
+          "name": "Create patient",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_receptionist}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/patients",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Ramesh Kulkarni\",\n  \"date_of_birth\": \"1990-05-15\",\n  \"gender\": \"male\",\n  \"phone\": \"+919876543210\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('patient_id', j.data.id); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Appointments",
+      "item": [
+        {
+          "name": "Book appointment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_receptionist}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/appointments",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patient_id\": \"{{patient_id}}\",\n  \"doctor_id\": \"{{doctor_id}}\",\n  \"appointment_date\": \"2026-10-12\",\n  \"appointment_time\": \"09:00\",\n  \"reason\": \"Chest pain\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('appointment_id', j.data.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Book same slot again (-> waitlisted)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_receptionist}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/appointments",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patient_id\": \"{{patient_id}}\",\n  \"doctor_id\": \"{{doctor_id}}\",\n  \"appointment_date\": \"2026-10-12\",\n  \"appointment_time\": \"09:00\",\n  \"reason\": \"Follow-up\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List appointments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_receptionist}}"
+              }
+            ],
+            "url": "{{base_url}}/appointments?doctor_id={{doctor_id}}"
+          }
+        },
+        {
+          "name": "Waiting list",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_receptionist}}"
+              }
+            ],
+            "url": "{{base_url}}/appointments/waiting-list?doctor_id={{doctor_id}}"
+          }
+        },
+        {
+          "name": "Reschedule appointment",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_receptionist}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/appointments/{{appointment_id}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"appointment_time\": \"09:15\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Complete appointment (doctor)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_doctor}}"
+              }
+            ],
+            "url": "{{base_url}}/appointments/{{appointment_id}}/complete"
+          }
+        },
+        {
+          "name": "Cancel appointment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_receptionist}}"
+              }
+            ],
+            "url": "{{base_url}}/appointments/{{appointment_id}}/cancel"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Wards, Beds & Admissions",
+      "item": [
+        {
+          "name": "Create ward",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/wards",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"General Ward A\",\n  \"ward_type\": \"general\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('ward_id', j.data.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add bed to ward",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/wards/{{ward_id}}/beds",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bed_number\": \"A-101\",\n  \"bed_type\": \"general\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('bed_id', j.data.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List beds",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_nurse}}"
+              }
+            ],
+            "url": "{{base_url}}/beds?ward_id={{ward_id}}"
+          }
+        },
+        {
+          "name": "Admit patient",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_receptionist}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/admissions",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patient_id\": \"{{patient_id}}\",\n  \"bed_id\": \"{{bed_id}}\",\n  \"doctor_id\": \"{{doctor_id}}\",\n  \"reason\": \"Observation\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('admission_id', j.data.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List admissions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_receptionist}}"
+              }
+            ],
+            "url": "{{base_url}}/admissions?status=admitted"
+          }
+        },
+        {
+          "name": "Discharge patient (nurse)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_nurse}}"
+              }
+            ],
+            "url": "{{base_url}}/admissions/{{admission_id}}/discharge"
+          }
+        }
+      ]
+    }
+  ]
+}
