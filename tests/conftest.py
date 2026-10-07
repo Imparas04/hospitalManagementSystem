@@ -75,3 +75,13 @@ def ward_and_bed(client, auth_header):
     bed = client.post(f"/api/wards/{ward['id']}/beds", headers=admin,
                        json={"bed_number": "A-101", "bed_type": "general"}).get_json()["data"]
     return {"ward": ward, "bed": bed}
+
+
+@pytest.fixture()
+def icu_ward_and_bed(client, auth_header):
+    """Creates one ICU ward with one available ICU bed."""
+    admin = auth_header(client, "admin")
+    ward = client.post("/api/wards", headers=admin, json={"name": "ICU Block", "ward_type": "icu"}).get_json()["data"]
+    bed = client.post(f"/api/wards/{ward['id']}/beds", headers=admin,
+                       json={"bed_number": "ICU-1", "bed_type": "icu"}).get_json()["data"]
+    return {"ward": ward, "bed": bed}

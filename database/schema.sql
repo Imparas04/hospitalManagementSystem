@@ -162,11 +162,12 @@ CREATE TABLE IF NOT EXISTS appointments (
 
 -- ---------- wards ----------
 CREATE TABLE IF NOT EXISTS wards (
-    id         INT AUTO_INCREMENT PRIMARY KEY,
-    name       VARCHAR(100) NOT NULL,
-    ward_type  VARCHAR(20)  NOT NULL,   -- general|icu|isolation|maternity|pediatric
-    is_active  BOOLEAN      NOT NULL DEFAULT TRUE,
-    created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    id                  INT AUTO_INCREMENT PRIMARY KEY,
+    name                VARCHAR(100) NOT NULL,
+    ward_type           VARCHAR(20)  NOT NULL,   -- general|icu|isolation|maternity|pediatric
+    gender_restriction  VARCHAR(10),             -- NULL = mixed, else 'male'/'female' (Phase 4: smart bed allocation)
+    is_active           BOOLEAN      NOT NULL DEFAULT TRUE,
+    created_at          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT uq_wards_name UNIQUE (name)
 ) ENGINE=InnoDB;
 
@@ -199,4 +200,33 @@ CREATE TABLE IF NOT EXISTS admissions (
     CONSTRAINT fk_admission_admitted_by FOREIGN KEY (admitted_by_id) REFERENCES users(id),
     INDEX ix_admission_patient (patient_id),
     INDEX ix_admission_bed (bed_id)
+) ENGINE=InnoDB;
+
+-- ============================================================
+-- Phase 4: triage_records (emergency vitals, priority, smart bed allocation link)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS triage_records (
+    id                          INT AUTO_INCREMENT PRIMARY KEY,
+    patient_id                  INT          NOT NULL,
+    blood_pressure_systolic     INT          NOT NULL,
+    blood_pressure_diastolic    INT          NOT NULL,
+    heart_rate                  INT          NOT NULL,
+    oxygen_level                INT          NOT NULL,
+    temperature                 FLOAT        NOT NULL,
+    symptoms                    VARCHAR(500) NOT NULL,
+    emergency_condition         VARCHAR(255),
+    icu_required                BOOLEAN      NOT NULL DEFAULT FALSE,
+    isolation_required          BOOLEAN      NOT NULL DEFAULT FALSE,
+    priority_level               VARCHAR(10)  NOT NULL,  -- critical|high|medium|low (computed)
+    priority_score               INT          NOT NULL,
+    status                       VARCHAR(20)  NOT NULL DEFAULT 'waiting',  -- waiting|bed_assigned|in_treatment|resolved
+    admission_id                 INT,
+    recorded_by_id                INT         NOT NULL,
+    recorded_at                   DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at                    DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_triage_patient FOREIGN KEY (patient_id) REFERENCES patients(id),
+    CONSTRAINT fk_triage_admission FOREIGN KEY (admission_id) REFERENCES admissions(id),
+    CONSTRAINT fk_triage_recorded_by FOREIGN KEY (recorded_by_id) REFERENCES users(id),
+    INDEX ix_triage_patient (patient_id),
+    INDEX ix_triage_status (status)
 ) ENGINE=InnoDB;

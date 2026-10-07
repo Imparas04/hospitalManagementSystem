@@ -80,3 +80,25 @@ JOIN users u ON u.id = d.user_id
 JOIN departments dept ON dept.id = d.department_id
 LEFT JOIN appointments a ON a.doctor_id = d.id
 GROUP BY dept.id, dept.name, d.id, u.full_name;
+
+-- [Phase 4] Emergency queue: waiting patients ordered most urgent first
+SELECT t.id, p.patient_code, p.full_name, t.priority_level, t.priority_score, t.symptoms, t.recorded_at
+FROM triage_records t
+JOIN patients p ON p.id = t.patient_id
+WHERE t.status = 'waiting'
+ORDER BY t.priority_score DESC, t.recorded_at ASC;
+
+-- [Phase 4] GROUP BY: how many emergency cases per priority level today
+SELECT priority_level, COUNT(*) AS cases
+FROM triage_records
+WHERE DATE(recorded_at) = CURDATE()
+GROUP BY priority_level
+ORDER BY FIELD(priority_level, 'critical', 'high', 'medium', 'low');
+
+-- [Phase 4] Multiple JOINs: which bed/ward each resolved emergency ended up in
+SELECT p.full_name, t.priority_level, w.name AS ward, b.bed_number
+FROM triage_records t
+JOIN patients p ON p.id = t.patient_id
+JOIN admissions ad ON ad.id = t.admission_id
+JOIN beds b ON b.id = ad.bed_id
+JOIN wards w ON w.id = b.ward_id;

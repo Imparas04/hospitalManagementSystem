@@ -19,6 +19,8 @@ class Ward(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
     ward_type = db.Column(db.String(20), nullable=False)
+    # None/NULL = mixed ward (any gender). 'male' or 'female' restricts it - used by smart bed allocation.
+    gender_restriction = db.Column(db.String(10))
     is_active = db.Column(db.Boolean, nullable=False, default=True)
     created_at = db.Column(db.DateTime, nullable=False, default=_now)
 
@@ -26,7 +28,8 @@ class Ward(db.Model):
 
     def to_dict(self):
         return {
-            "id": self.id, "name": self.name, "ward_type": self.ward_type, "is_active": self.is_active,
+            "id": self.id, "name": self.name, "ward_type": self.ward_type,
+            "gender_restriction": self.gender_restriction, "is_active": self.is_active,
             "total_beds": len(self.beds),
             "available_beds": sum(1 for b in self.beds if b.status == "available"),
         }

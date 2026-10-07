@@ -24,7 +24,7 @@ def create_app(config_class=Config):
     from app import models  # noqa: F401
 
     # Routes (blueprints)
-    from app.routes import admissions, appointments, auth, doctors, health, patients, users
+    from app.routes import admissions, appointments, auth, doctors, health, patients, triage, users
     app.register_blueprint(health.bp)
     app.register_blueprint(auth.bp)
     app.register_blueprint(users.bp)
@@ -32,6 +32,7 @@ def create_app(config_class=Config):
     app.register_blueprint(doctors.bp)
     app.register_blueprint(appointments.bp)
     app.register_blueprint(admissions.bp)
+    app.register_blueprint(triage.bp)
 
     from app.middleware.error_handlers import register_error_handlers
     register_error_handlers(app)

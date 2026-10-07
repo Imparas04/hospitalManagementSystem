@@ -7,7 +7,8 @@ from app.models.bed import Admission, Bed, Ward
 
 
 def create_ward(data):
-    ward = Ward(name=data["name"].strip(), ward_type=data["ward_type"])
+    ward = Ward(name=data["name"].strip(), ward_type=data["ward_type"],
+                gender_restriction=(data.get("gender_restriction") or None))
     db.session.add(ward)
     db.session.commit()
     return ward

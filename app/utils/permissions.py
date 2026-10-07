@@ -25,6 +25,7 @@ ROLE_PERMISSIONS = {
         "wards:read", "beds:read", "admissions:read",
         "prescriptions:read", "prescriptions:create",
         "lab:order", "lab:read", "lab:review",
+        "triage:read", "triage:update",
     },
     ROLE_NURSE: {
         "patients:read",
@@ -33,6 +34,7 @@ ROLE_PERMISSIONS = {
         "vitals:read", "vitals:create",
         "wards:read", "beds:read", "beds:update",
         "admissions:read", "admissions:update",
+        "triage:read", "triage:create", "triage:update",
     },
     ROLE_LAB_TECH: {
         "lab:read", "lab:update", "lab:enter_result",

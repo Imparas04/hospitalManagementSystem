@@ -210,6 +210,9 @@ def validate_ward_payload(data):
         errors["name"] = "Ward name is required"
     if data.get("ward_type") not in WARD_TYPES:
         errors["ward_type"] = f"ward_type must be one of: {', '.join(WARD_TYPES)}"
+    gr = data.get("gender_restriction")
+    if gr not in (None, "", "male", "female"):
+        errors["gender_restriction"] = "gender_restriction must be 'male', 'female', or omitted (mixed ward)"
     return errors
 
 
@@ -231,6 +234,43 @@ def validate_admission_payload(data):
     reason = data.get("reason")
     if not isinstance(reason, str) or not 2 <= len(reason.strip()) <= 255:
         errors["reason"] = "reason is required (2-255 characters)"
+    return errors
+
+
+def validate_triage_payload(data):
+    errors = {}
+
+    def need_int(field, lo, hi, label):
+        val = data.get(field)
+        if not isinstance(val, int) or not lo <= val <= hi:
+            errors[field] = f"{label} is required and must be a whole number between {lo} and {hi}"
+
+    if not isinstance(data.get("patient_id"), int):
+        errors["patient_id"] = "patient_id is required"
+    need_int("blood_pressure_systolic", 40, 300, "Systolic BP")
+    need_int("blood_pressure_diastolic", 20, 200, "Diastolic BP")
+    need_int("heart_rate", 20, 250, "Heart rate")
+    need_int("oxygen_level", 0, 100, "Oxygen level")
+
+    temp = data.get("temperature")
+    if not isinstance(temp, (int, float)) or not 85 <= temp <= 115:
+        errors["temperature"] = "temperature is required and must be between 85 and 115 (Fahrenheit)"
+
+    symptoms = data.get("symptoms")
+    if not isinstance(symptoms, str) or not 2 <= len(symptoms.strip()) <= 500:
+        errors["symptoms"] = "symptoms is required (2-500 characters)"
+
+    for field in ("icu_required", "isolation_required"):
+        if field in data and not isinstance(data[field], bool):
+            errors[field] = f"{field} must be true or false"
+    return errors
+
+
+def validate_triage_status_payload(data):
+    from app.models.triage import TRIAGE_STATUSES
+    errors = {}
+    if data.get("status") not in TRIAGE_STATUSES:
+        errors["status"] = f"status must be one of: {', '.join(TRIAGE_STATUSES)}"
     return errors
 
 

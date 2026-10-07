@@ -1,6 +1,6 @@
 # Smart Hospital Operations, Emergency & Resource Management System - Backend
 
-**Current state: Phase 3 - Doctor, Appointment & Admission** (includes everything from Phases 1-2)
+**Current state: Phase 4 - Emergency, Triage & Smart Bed Allocation** (includes everything from Phases 1-3)
 
 Stack: Python, Flask (REST API), MySQL, SQLAlchemy, JWT (Flask-JWT-Extended), PyMySQL, pytest.
 (Pandas/NumPy/PDF libraries are added in the phases that use them - Phase 6 and 7.)
@@ -78,6 +78,15 @@ More in `docs/TESTING_Phase_01.md`.
 - Phase 1 (auth, users, RBAC): `docs/API_Phase_01.md` + `postman/Hospital_Phase01.postman_collection.json`
 - Phase 2 (patients): `docs/API_Phase_02.md` + `postman/Hospital_Phase02.postman_collection.json`
 - Phase 3 (doctors, appointments, admissions): `docs/API_Phase_03.md` + `postman/Hospital_Phase03.postman_collection.json`
+- Phase 4 (triage, emergency queue, smart bed allocation): `docs/API_Phase_04.md`
+
+## Phase 4 - what was added
+- `triage_records` table (vitals, computed priority, status, link to the admission it resulted in)
+- `wards.gender_restriction` column added (NULL = mixed, else `male`/`female`) - used by smart bed allocation
+- **Priority calculation algorithm** (`app/services/triage_service.py::calculate_priority`): rule-based scoring from vitals (oxygen, heart rate, blood pressure, temperature) -> `critical`/`high`/`medium`/`low`
+- **Emergency queue:** `GET /api/triage/queue` - waiting patients sorted most-urgent-first
+- **Smart bed allocation algorithm** (`find_bed_for_triage` / `allocate_bed_for_triage`): matches bed type (ICU/isolation/general) + ward gender restriction + availability, prefers the tightest-fitting ward, then auto-admits the patient and occupies the bed in one call
+- RBAC: nurse records triage and allocates beds; doctor reads the queue and updates status; no other role has access
 
 ## Phase 3 - what was added
 - `departments`, `doctors`, `doctor_schedules`, `appointments`, `wards`, `beds`, `admissions` tables (see `database/schema.sql`)
@@ -143,6 +152,9 @@ git commit -m "Phase 2: patient management, medical/visit history, search, RBAC,
 # ... after Phase 3 work:
 git add .
 git commit -m "Phase 3: doctors, appointments with waiting list, wards/beds, admissions, RBAC, tests, docs"
+# ... after Phase 4 work:
+git add .
+git commit -m "Phase 4: triage, priority calculation, emergency queue, smart bed allocation, RBAC, tests, docs"
 git branch -M main
 git remote add origin <your-github-repo-url>
 git push -u origin main
@@ -153,8 +165,8 @@ git push -u origin main
 |---|---|
 | 1 | Setup, DB foundation, users, roles, login, JWT, RBAC |
 | 2 | Patient management |
-| **3 (this)** | Departments, doctors, appointments, wards/beds, admissions |
-| 4 | Emergency, triage, priority queue, smart bed allocation |
+| 3 | Departments, doctors, appointments, wards/beds, admissions |
+| **4 (this)** | Emergency, triage, priority queue, smart bed allocation |
 | 5 | Laboratory + pharmacy |
 | 6 | Billing, payments, discharge, PDF |
 | 7 | Dashboard, Pandas/Excel/PDF reports, notifications, audit logs |
