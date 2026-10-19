@@ -6,3 +6,9 @@ PyMySQL==1.2.3
 cryptography==50.0.1
 python-dotenv==1.2.3
 pytest==9.1.1
+reportlab==5.0.1
+pypdf==6.19.0
+pandas==3.0.6
+numpy==2.5.3
+openpyxl==3.1.5
+tzdata==2026.5

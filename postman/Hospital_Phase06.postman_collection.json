@@ -1,0 +1,554 @@
+{
+  "info": {
+    "name": "Hospital Backend - Phase 6 (Billing & Discharge)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000/api"
+    },
+    {
+      "key": "token_admin",
+      "value": ""
+    },
+    {
+      "key": "token_doctor",
+      "value": ""
+    },
+    {
+      "key": "token_nurse",
+      "value": ""
+    },
+    {
+      "key": "token_billing",
+      "value": ""
+    },
+    {
+      "key": "patient_id",
+      "value": ""
+    },
+    {
+      "key": "doctor_id",
+      "value": ""
+    },
+    {
+      "key": "admission_id",
+      "value": ""
+    },
+    {
+      "key": "bill_id",
+      "value": ""
+    },
+    {
+      "key": "payment_id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Logins",
+      "item": [
+        {
+          "name": "Login (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"Admin12345\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('token_admin', j.data.access_token); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (doctor)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"demo_doctor\",\n  \"password\": \"Demo12345\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('token_doctor', j.data.access_token); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (nurse)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"demo_nurse\",\n  \"password\": \"Demo12345\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('token_nurse', j.data.access_token); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (billing staff)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"demo_billing_staff\",\n  \"password\": \"Demo12345\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('token_billing', j.data.access_token); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Prices on earlier APIs (optional)",
+      "item": [
+        {
+          "name": "Set doctor consultation fee",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/doctors/{{doctor_id}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"consultation_fee\": 600\n}"
+            }
+          }
+        },
+        {
+          "name": "Create ward with daily charge",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/wards",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Private Ward\",\n  \"ward_type\": \"general\",\n  \"daily_charge\": 2500\n}"
+            }
+          }
+        },
+        {
+          "name": "Create lab test with price",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/lab/tests",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Kidney Function Test\",\n  \"code\": \"KFT\",\n  \"price\": 450\n}"
+            }
+          }
+        },
+        {
+          "name": "Create medicine with unit price",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/pharmacy/medicines",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cetirizine\",\n  \"unit\": \"tablet\",\n  \"unit_price\": 6.5\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Discharge (needs admission_id from Phase 3)",
+      "item": [
+        {
+          "name": "Doctor discharges patient + final bill",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_doctor}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/discharge/{{admission_id}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"diagnosis\": \"Community-acquired pneumonia\",\n  \"treatment_summary\": \"IV antibiotics for 3 days, oxygen support.\",\n  \"doctor_instructions\": \"Complete the antibiotic course.\",\n  \"follow_up_date\": \"2030-01-15\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success && j.data.final_bill) { pm.collectionVariables.set('bill_id', j.data.final_bill.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get discharge summary",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_nurse}}"
+              }
+            ],
+            "url": "{{base_url}}/discharge/{{admission_id}}"
+          }
+        },
+        {
+          "name": "Discharge summary PDF (use Send and Download)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_nurse}}"
+              }
+            ],
+            "url": "{{base_url}}/discharge/{{admission_id}}/pdf"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Billing",
+      "item": [
+        {
+          "name": "Preview billable items",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_billing}}"
+              }
+            ],
+            "url": "{{base_url}}/bills/preview?patient_id={{patient_id}}"
+          }
+        },
+        {
+          "name": "Generate bill (if not auto-created by discharge)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_billing}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/bills",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patient_id\": \"{{patient_id}}\",\n  \"discount_percent\": 0,\n  \"other_services\": [\n    {\n      \"description\": \"Ambulance\",\n      \"quantity\": 1,\n      \"unit_price\": 800\n    }\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('bill_id', j.data.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "List bills",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_billing}}"
+              }
+            ],
+            "url": "{{base_url}}/bills?status=unpaid"
+          }
+        },
+        {
+          "name": "Outstanding bills",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_billing}}"
+              }
+            ],
+            "url": "{{base_url}}/bills/outstanding"
+          }
+        },
+        {
+          "name": "Get bill",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_billing}}"
+              }
+            ],
+            "url": "{{base_url}}/bills/{{bill_id}}"
+          }
+        },
+        {
+          "name": "Add other service",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_billing}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/bills/{{bill_id}}/items",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Dressing kit\",\n  \"quantity\": 2,\n  \"unit_price\": 75\n}"
+            }
+          }
+        },
+        {
+          "name": "Adjust discount + tax (before any payment)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_billing}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/bills/{{bill_id}}/adjust",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"discount_percent\": 10,\n  \"tax_percent\": 5\n}"
+            }
+          }
+        },
+        {
+          "name": "Invoice PDF (use Send and Download)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_billing}}"
+              }
+            ],
+            "url": "{{base_url}}/bills/{{bill_id}}/pdf"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payments",
+      "item": [
+        {
+          "name": "Pay part - cash",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_billing}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/bills/{{bill_id}}/payments",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 1000,\n  \"method\": \"cash\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('payment_id', j.data.payment.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Pay part - UPI",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_billing}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/bills/{{bill_id}}/payments",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 500,\n  \"method\": \"upi\",\n  \"reference\": \"UPI-TXN-12345\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Receipt (JSON)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_billing}}"
+              }
+            ],
+            "url": "{{base_url}}/payments/{{payment_id}}/receipt"
+          }
+        },
+        {
+          "name": "Receipt PDF (use Send and Download)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_billing}}"
+              }
+            ],
+            "url": "{{base_url}}/payments/{{payment_id}}/receipt/pdf"
+          }
+        }
+      ]
+    }
+  ]
+}

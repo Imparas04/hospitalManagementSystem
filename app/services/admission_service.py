@@ -8,7 +8,8 @@ from app.models.bed import Admission, Bed, Ward
 
 def create_ward(data):
     ward = Ward(name=data["name"].strip(), ward_type=data["ward_type"],
-                gender_restriction=(data.get("gender_restriction") or None))
+                gender_restriction=(data.get("gender_restriction") or None),
+                daily_charge=data.get("daily_charge", 1000))
     db.session.add(ward)
     db.session.commit()
     return ward
@@ -65,6 +66,8 @@ def discharge_patient(admission):
     admission.discharge_date = datetime.now(timezone.utc)
     admission.bed.status = "available"
     db.session.commit()
+    from app.services import notification_service  # local import avoids a circular import
+    notification_service.notify_discharge(admission)
     return admission
 
 

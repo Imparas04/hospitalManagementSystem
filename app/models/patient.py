@@ -18,12 +18,12 @@ class Patient(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     patient_code = db.Column(db.String(20), unique=True, nullable=False, index=True)
 
-    full_name = db.Column(db.String(100), nullable=False)
+    full_name = db.Column(db.String(100), nullable=False, index=True)
     date_of_birth = db.Column(db.Date, nullable=False)
     gender = db.Column(db.String(10), nullable=False)
     blood_group = db.Column(db.String(10), nullable=False, default="unknown")
 
-    phone = db.Column(db.String(20), nullable=False)
+    phone = db.Column(db.String(20), nullable=False, index=True)
     email = db.Column(db.String(120))
     address = db.Column(db.String(255))
 

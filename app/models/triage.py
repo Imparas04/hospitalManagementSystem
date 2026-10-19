@@ -41,7 +41,7 @@ class TriageRecord(db.Model):
 
     priority_level = db.Column(db.String(10), nullable=False)   # critical|high|medium|low - computed
     priority_score = db.Column(db.Integer, nullable=False)      # raw score the level was computed from
-    status = db.Column(db.String(20), nullable=False, default=STATUS_WAITING)
+    status = db.Column(db.String(20), nullable=False, default=STATUS_WAITING, index=True)
 
     admission_id = db.Column(db.Integer, db.ForeignKey("admissions.id"))  # set once a bed is allocated
 

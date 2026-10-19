@@ -33,6 +33,7 @@ def create_doctor(data):
         department_id=data["department_id"],
         specialization=data["specialization"].strip(),
         is_on_emergency_duty=bool(data.get("is_on_emergency_duty", False)),
+        consultation_fee=data.get("consultation_fee", 500),
     )
     db.session.add(doctor)
     db.session.commit()
@@ -46,6 +47,8 @@ def update_doctor(doctor, data):
         doctor.specialization = data["specialization"].strip()
     if "is_on_emergency_duty" in data:
         doctor.is_on_emergency_duty = bool(data["is_on_emergency_duty"])
+    if "consultation_fee" in data:
+        doctor.consultation_fee = data["consultation_fee"]
     if "is_active" in data:
         doctor.is_active = bool(data["is_active"])
     db.session.commit()

@@ -31,6 +31,7 @@ class Doctor(db.Model):
     department_id = db.Column(db.Integer, db.ForeignKey("departments.id"), nullable=False)
     specialization = db.Column(db.String(100), nullable=False)
     is_on_emergency_duty = db.Column(db.Boolean, nullable=False, default=False)
+    consultation_fee = db.Column(db.Numeric(10, 2), nullable=False, default=500)  # charged per completed appointment (Rs.)
     is_active = db.Column(db.Boolean, nullable=False, default=True)
     created_at = db.Column(db.DateTime, nullable=False, default=_now)
 
@@ -47,6 +48,7 @@ class Doctor(db.Model):
             "department_id": self.department_id,
             "specialization": self.specialization,
             "is_on_emergency_duty": self.is_on_emergency_duty,
+            "consultation_fee": float(self.consultation_fee),
             "is_active": self.is_active,
         }
 

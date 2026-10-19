@@ -1,0 +1,798 @@
+{
+  "info": {
+    "name": "Hospital Backend - Phase 7 (Dashboard, Reports, Notifications, Audit)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000/api"
+    },
+    {
+      "key": "token_admin",
+      "value": ""
+    },
+    {
+      "key": "token_receptionist",
+      "value": ""
+    },
+    {
+      "key": "token_doctor",
+      "value": ""
+    },
+    {
+      "key": "token_nurse",
+      "value": ""
+    },
+    {
+      "key": "token_lab",
+      "value": ""
+    },
+    {
+      "key": "token_pharmacist",
+      "value": ""
+    },
+    {
+      "key": "token_billing",
+      "value": ""
+    },
+    {
+      "key": "notification_id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Logins",
+      "item": [
+        {
+          "name": "Login (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"Admin12345\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('token_admin', j.data.access_token); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (receptionist)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"demo_receptionist\",\n  \"password\": \"Demo12345\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('token_receptionist', j.data.access_token); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (doctor)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"demo_doctor\",\n  \"password\": \"Demo12345\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('token_doctor', j.data.access_token); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (nurse)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"demo_nurse\",\n  \"password\": \"Demo12345\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('token_nurse', j.data.access_token); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (lab_technician)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"demo_lab_technician\",\n  \"password\": \"Demo12345\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('token_lab', j.data.access_token); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (pharmacist)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"demo_pharmacist\",\n  \"password\": \"Demo12345\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('token_pharmacist', j.data.access_token); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (billing_staff)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"demo_billing_staff\",\n  \"password\": \"Demo12345\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('token_billing', j.data.access_token); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Dashboards (same URL, different result per role)",
+      "item": [
+        {
+          "name": "Dashboard - admin",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
+            ],
+            "url": "{{base_url}}/dashboard"
+          }
+        },
+        {
+          "name": "Dashboard - receptionist",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_receptionist}}"
+              }
+            ],
+            "url": "{{base_url}}/dashboard"
+          }
+        },
+        {
+          "name": "Dashboard - doctor",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_doctor}}"
+              }
+            ],
+            "url": "{{base_url}}/dashboard"
+          }
+        },
+        {
+          "name": "Dashboard - nurse",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_nurse}}"
+              }
+            ],
+            "url": "{{base_url}}/dashboard"
+          }
+        },
+        {
+          "name": "Dashboard - lab_technician",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_lab}}"
+              }
+            ],
+            "url": "{{base_url}}/dashboard"
+          }
+        },
+        {
+          "name": "Dashboard - pharmacist",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_pharmacist}}"
+              }
+            ],
+            "url": "{{base_url}}/dashboard"
+          }
+        },
+        {
+          "name": "Dashboard - billing_staff",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_billing}}"
+              }
+            ],
+            "url": "{{base_url}}/dashboard"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Analytics (Chart.js shape)",
+      "item": [
+        {
+          "name": "Patient registrations (7 days)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
+            ],
+            "url": "{{base_url}}/analytics/patient-registrations?days=7"
+          }
+        },
+        {
+          "name": "Department-wise patients",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
+            ],
+            "url": "{{base_url}}/analytics/department-patients"
+          }
+        },
+        {
+          "name": "Bed occupancy",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_nurse}}"
+              }
+            ],
+            "url": "{{base_url}}/analytics/bed-occupancy"
+          }
+        },
+        {
+          "name": "Emergency cases (7 days)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_doctor}}"
+              }
+            ],
+            "url": "{{base_url}}/analytics/emergency-cases?days=7"
+          }
+        },
+        {
+          "name": "Monthly revenue (6 months)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_billing}}"
+              }
+            ],
+            "url": "{{base_url}}/analytics/monthly-revenue?months=6"
+          }
+        },
+        {
+          "name": "Lab statistics",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_lab}}"
+              }
+            ],
+            "url": "{{base_url}}/analytics/lab-statistics?days=30"
+          }
+        },
+        {
+          "name": "Medicine consumption (top 5)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_pharmacist}}"
+              }
+            ],
+            "url": "{{base_url}}/analytics/medicine-consumption?days=30&limit=5"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "Which reports can I run? (admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
+            ],
+            "url": "{{base_url}}/reports"
+          }
+        },
+        {
+          "name": "Daily report (JSON)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
+            ],
+            "url": "{{base_url}}/reports/daily"
+          }
+        },
+        {
+          "name": "Weekly report (JSON)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
+            ],
+            "url": "{{base_url}}/reports/weekly?date=2026-10-15"
+          }
+        },
+        {
+          "name": "Monthly report (JSON)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
+            ],
+            "url": "{{base_url}}/reports/monthly?month=2026-10"
+          }
+        },
+        {
+          "name": "Department report",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
+            ],
+            "url": "{{base_url}}/reports/department?from=2026-10-01&to=2026-10-31"
+          }
+        },
+        {
+          "name": "Doctor performance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
+            ],
+            "url": "{{base_url}}/reports/doctor-performance?from=2026-10-01&to=2026-10-31"
+          }
+        },
+        {
+          "name": "Revenue report (billing)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_billing}}"
+              }
+            ],
+            "url": "{{base_url}}/reports/revenue?from=2026-10-01&to=2026-10-31"
+          }
+        },
+        {
+          "name": "Pharmacy report (pharmacist)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_pharmacist}}"
+              }
+            ],
+            "url": "{{base_url}}/reports/pharmacy"
+          }
+        },
+        {
+          "name": "Revenue -> Excel (Send and Download)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_billing}}"
+              }
+            ],
+            "url": "{{base_url}}/reports/revenue?format=xlsx"
+          }
+        },
+        {
+          "name": "Revenue -> CSV, one table (Send and Download)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_billing}}"
+              }
+            ],
+            "url": "{{base_url}}/reports/revenue?format=csv&table=by_payment_method"
+          }
+        },
+        {
+          "name": "Department -> PDF (Send and Download)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
+            ],
+            "url": "{{base_url}}/reports/department?format=pdf"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "My notifications (pharmacist)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_pharmacist}}"
+              }
+            ],
+            "url": "{{base_url}}/notifications"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success && j.data.items.length) { pm.collectionVariables.set('notification_id', j.data.items[0].id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unread count (bell badge)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_pharmacist}}"
+              }
+            ],
+            "url": "{{base_url}}/notifications/unread-count"
+          }
+        },
+        {
+          "name": "Only unread low-stock",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_pharmacist}}"
+              }
+            ],
+            "url": "{{base_url}}/notifications?unread=true&type=low_stock"
+          }
+        },
+        {
+          "name": "Mark one as read",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_pharmacist}}"
+              }
+            ],
+            "url": "{{base_url}}/notifications/{{notification_id}}/read"
+          }
+        },
+        {
+          "name": "Mark all as read",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_pharmacist}}"
+              }
+            ],
+            "url": "{{base_url}}/notifications/read-all"
+          }
+        },
+        {
+          "name": "Doctor's notifications (lab results)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_doctor}}"
+              }
+            ],
+            "url": "{{base_url}}/notifications"
+          }
+        },
+        {
+          "name": "Billing's notifications (payments, discharges)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_billing}}"
+              }
+            ],
+            "url": "{{base_url}}/notifications"
+          }
+        },
+        {
+          "name": "Force alert refresh (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
+            ],
+            "url": "{{base_url}}/notifications/refresh"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Audit log (admin only)",
+      "item": [
+        {
+          "name": "Latest activity",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
+            ],
+            "url": "{{base_url}}/audit-logs?per_page=20"
+          }
+        },
+        {
+          "name": "Failed logins",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
+            ],
+            "url": "{{base_url}}/audit-logs?action=auth.login_failed"
+          }
+        },
+        {
+          "name": "History of one patient",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
+            ],
+            "url": "{{base_url}}/audit-logs?entity_type=Patient&entity_id=1"
+          }
+        },
+        {
+          "name": "What did one user do today?",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
+            ],
+            "url": "{{base_url}}/audit-logs?username=demo_doctor&date_from=2026-10-15"
+          }
+        },
+        {
+          "name": "Search description",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
+            ],
+            "url": "{{base_url}}/audit-logs?q=Discharged"
+          }
+        },
+        {
+          "name": "Action names (filter drop-down)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              }
+            ],
+            "url": "{{base_url}}/audit-logs/actions"
+          }
+        }
+      ]
+    }
+  ]
+}

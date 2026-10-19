@@ -35,11 +35,24 @@ class Config:
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=int(os.getenv("JWT_EXPIRES_HOURS", "8")))
 
+    # Billing / PDF settings (Phase 6)
+    DEFAULT_TAX_PERCENT = float(os.getenv("DEFAULT_TAX_PERCENT", "0"))
+    HOSPITAL_NAME = os.getenv("HOSPITAL_NAME", "Smart Hospital")
+
+    # Dashboard / reports / notifications (Phase 7)
+    # Timestamps are stored in UTC; this zone decides what "today" means for dashboards and reports.
+    HOSPITAL_TIMEZONE = os.getenv("HOSPITAL_TIMEZONE", "Asia/Kolkata")
+    EXPIRY_ALERT_DAYS = int(os.getenv("EXPIRY_ALERT_DAYS", "30"))                # medicine-expiry warning window
+    PAYMENT_PENDING_AFTER_DAYS = int(os.getenv("PAYMENT_PENDING_AFTER_DAYS", "0"))  # 0 = every unpaid bill
+    NOTIFICATION_SCAN_INTERVAL_SECONDS = int(os.getenv("NOTIFICATION_SCAN_INTERVAL_SECONDS", "60"))
+
     CORS_ORIGINS = [o.strip() for o in os.getenv("CORS_ORIGINS", "*").split(",") if o.strip()]
 
 
 class TestingConfig(Config):
     """Used by pytest: in-memory SQLite, so tests never touch the real MySQL data."""
     TESTING = True
+    HOSPITAL_TIMEZONE = "UTC"
+    NOTIFICATION_SCAN_INTERVAL_SECONDS = 0   # always re-scan in tests
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
     JWT_SECRET_KEY = "test-only-secret-key-not-for-real-use-0123456789"

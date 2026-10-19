@@ -23,7 +23,7 @@ class Appointment(db.Model):
     doctor_id = db.Column(db.Integer, db.ForeignKey("doctors.id"), nullable=False, index=True)
     department_id = db.Column(db.Integer, db.ForeignKey("departments.id"), nullable=False)
 
-    appointment_date = db.Column(db.Date, nullable=False)
+    appointment_date = db.Column(db.Date, nullable=False, index=True)
     appointment_time = db.Column(db.Time, nullable=False)
     duration_minutes = db.Column(db.Integer, nullable=False, default=15)
 

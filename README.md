@@ -1,9 +1,9 @@
 # Smart Hospital Operations, Emergency & Resource Management System - Backend
 
-**Current state: Phase 4 - Emergency, Triage & Smart Bed Allocation** (includes everything from Phases 1-3)
+**Current state: Phase 7 - Dashboard, Reports, Notifications & Audit Log** (includes everything from Phases 1-6)
 
 Stack: Python, Flask (REST API), MySQL, SQLAlchemy, JWT (Flask-JWT-Extended), PyMySQL, pytest.
-(Pandas/NumPy/PDF libraries are added in the phases that use them - Phase 6 and 7.)
+(ReportLab for PDFs arrived in Phase 6; Pandas/NumPy are added in Phase 7 when reports need them. `pypdf` is used only by the tests, to read generated PDFs back.)
 
 ## Folder structure
 ```
@@ -14,7 +14,7 @@ backend/
 │   ├── extensions.py        # db, jwt, cors objects
 │   ├── cli.py               # flask init-db / seed-roles / create-admin / seed-demo-users
 │   ├── models/              # database tables as Python classes (Role, User, Patient, Doctor, Appointment, ...)
-│   ├── routes/              # API endpoints (auth, users, health, patients, doctors, appointments, admissions)
+│   ├── routes/              # API endpoints (auth, users, patients, doctors, appointments, admissions, triage, lab, pharmacy, billing, discharge, dashboard, reports, notifications, audit)
 │   ├── services/            # business logic (login, user creation, patient registration, booking, admission)
 │   ├── middleware/          # login_required / roles_required / permission_required + error handlers
 │   └── utils/               # responses, validators, permissions map
@@ -78,7 +78,39 @@ More in `docs/TESTING_Phase_01.md`.
 - Phase 1 (auth, users, RBAC): `docs/API_Phase_01.md` + `postman/Hospital_Phase01.postman_collection.json`
 - Phase 2 (patients): `docs/API_Phase_02.md` + `postman/Hospital_Phase02.postman_collection.json`
 - Phase 3 (doctors, appointments, admissions): `docs/API_Phase_03.md` + `postman/Hospital_Phase03.postman_collection.json`
-- Phase 4 (triage, emergency queue, smart bed allocation): `docs/API_Phase_04.md`
+- Phase 4 (triage, emergency queue, smart bed allocation): `docs/API_Phase_04.md` + `postman/Hospital_Phase04.postman_collection.json`
+- Phase 5 (laboratory, pharmacy, prescriptions): `docs/API_Phase_05.md` + `postman/Hospital_Phase05.postman_collection.json`
+- Phase 6 (billing, payments, discharge, PDFs): `docs/API_Phase_06.md` + `postman/Hospital_Phase06.postman_collection.json`
+- Phase 7 (dashboards, analytics, reports, notifications, audit log): `docs/API_Phase_07.md` + `postman/Hospital_Phase07.postman_collection.json`
+
+## Phase 7 - what was added
+- Tables: `audit_logs`, `notifications`, `notification_reads` (27 tables in total now)
+- **Role-based dashboards:** `GET /api/dashboard` returns a *different* set of cards for each of the 7 roles (decided on the server from the token). Admin gets the 8 headline numbers from the requirement document
+- **Chart.js-ready analytics:** 7 chart endpoints (registration trend, department-wise patients, bed occupancy, emergency cases, monthly revenue, lab statistics, medicine consumption), all in one identical shape; each role only gets the charts that belong to its work
+- **Pandas reports** (`app/services/report_service.py`): daily, weekly, monthly, department, doctor performance, revenue, pharmacy. Every report = query -> DataFrame -> group/aggregate (NumPy for rates) -> one packaged structure -> JSON / CSV / Excel / PDF, so all formats show identical numbers. Exported spreadsheets are protected against formula injection
+- **Notifications:** lab result ready, patient discharged (events) and low stock, medicine expiry, payment pending (alerts that appear/update/resolve by themselves, never duplicated). Read state is per user
+- **Audit log:** a middleware (`app/middleware/audit.py`) records every successful write action, login, failed login and report export: who (user + role), what, which record, when, from which IP. Append-only, admin-only. A test fails if any new write endpoint is added without an audit rule
+- **Timezone-correct "today":** database timestamps are UTC; dashboards and reports use `HOSPITAL_TIMEZONE` (default `Asia/Kolkata`) so a payment at 1 AM IST counts for the right day. (`tzdata` is installed because Windows has no timezone database)
+- New `.env` settings: `HOSPITAL_TIMEZONE`, `EXPIRY_ALERT_DAYS`, `PAYMENT_PENDING_AFTER_DAYS`, `NOTIFICATION_SCAN_INTERVAL_SECONDS`
+- Frontend notes: all timestamps are UTC; files (PDF/Excel/CSV) must be fetched with the JWT header and saved as a blob (examples in `docs/API_Phase_07.md`)
+
+## Phase 6 - what was added
+- Tables: `bills`, `bill_items`, `payments`, `discharge_summaries` (24 tables in total now). Price columns added to existing tables: `doctors.consultation_fee`, `wards.daily_charge`, `lab_tests.price`, `medicines.unit_price` (all optional, with defaults)
+- **Automatic billing algorithm** (`app/services/billing_service.py`): consultation + bed + lab + medicine + other services -> subtotal -> discount -> tax -> final amount. Money uses `Decimal` (never float) rounded to 2 places; every service is billed once only (UNIQUE `source_key` in the database); medicines are billed only for what was actually issued, in rounds; bed charges are billed after discharge
+- **Payments:** partial payments, multiple methods (cash/card/upi/bank_transfer/insurance), outstanding amount, overpayment blocked, one numbered receipt per payment (`R2026000001`); the bill row is locked while paying so two cashiers cannot double-collect
+- **Discharge:** one doctor call frees the bed, saves the summary (diagnosis, treatment, instructions, follow-up date) and generates the final bill. The summary also shows the stay's lab reports and medicines
+- **PDF generation** with ReportLab (`app/services/pdf_service.py`): invoice, payment receipt, discharge summary. User-typed text is escaped so characters like `<` and `&` cannot break a PDF
+- New `.env` settings: `DEFAULT_TAX_PERCENT`, `HOSPITAL_NAME` (see `.env.example`)
+- Frontend note: PDFs need the JWT header, so open them with `fetch()` + blob (example in `docs/API_Phase_06.md`)
+
+## Phase 5 - what was added
+- Tables: `lab_tests`, `lab_orders`, `lab_results`, `medicines`, `medicine_stock`, `prescriptions`, `prescription_items` (20 tables in total now)
+- **Laboratory workflow:** doctor orders a test -> lab technician marks sample collected -> processing -> enters the result -> doctor reviews it (`ordered -> sample_collected -> processing -> result_entered -> reviewed`). Each step is permission-checked and out-of-order actions are rejected
+- **Pharmacy:** medicine catalog + per-batch stock (batch number, expiry date, purchase quantity, available quantity)
+- **Issuing algorithm (FEFO)** in `app/services/pharmacy_service.py`: issues from the batch that expires first, never from an expired batch, splits across batches, and reports a per-medicine `shortfall` when stock runs out (prescription becomes `partially_issued` and can be completed after restocking)
+- **Low-stock detection:** `GET /api/pharmacy/medicines?low_stock=true` (counts non-expired stock only). Pushing this out as a notification is part of Phase 7
+- Prescriptions (doctor creates, pharmacist issues) with item-level status
+- Schema fix: model indexes and `schema.sql` indexes now match exactly, so `flask init-db` and `schema.sql` build identical databases
 
 ## Phase 4 - what was added
 - `triage_records` table (vitals, computed priority, status, link to the admission it resulted in)
@@ -139,7 +171,6 @@ The role -> permission table lives in ONE file: `app/utils/permissions.py`. On e
 ## Known limitations (planned later)
 - No logout/token blacklist (frontend simply deletes the token; tokens expire after `JWT_EXPIRES_HOURS`)
 - No login rate limiting / account lockout (can be added in Phase 8 security pass)
-- Audit log table arrives in Phase 7
 
 ## Suggested Git commits
 ```bash
@@ -155,6 +186,15 @@ git commit -m "Phase 3: doctors, appointments with waiting list, wards/beds, adm
 # ... after Phase 4 work:
 git add .
 git commit -m "Phase 4: triage, priority calculation, emergency queue, smart bed allocation, RBAC, tests, docs"
+# ... after Phase 5 work:
+git add .
+git commit -m "Phase 5: laboratory workflow, pharmacy stock with FEFO issuing, prescriptions, RBAC, tests, docs"
+# ... after Phase 6 work:
+git add .
+git commit -m "Phase 6: automatic billing, payments and receipts, discharge summary, PDF generation, RBAC, tests, docs"
+# ... after Phase 7 work:
+git add .
+git commit -m "Phase 7: role dashboards, Chart.js analytics, Pandas reports (Excel/CSV/PDF), notifications, audit log, tests, docs"
 git branch -M main
 git remote add origin <your-github-repo-url>
 git push -u origin main
@@ -166,8 +206,8 @@ git push -u origin main
 | 1 | Setup, DB foundation, users, roles, login, JWT, RBAC |
 | 2 | Patient management |
 | 3 | Departments, doctors, appointments, wards/beds, admissions |
-| **4 (this)** | Emergency, triage, priority queue, smart bed allocation |
+| 4 | Emergency, triage, priority queue, smart bed allocation |
 | 5 | Laboratory + pharmacy |
 | 6 | Billing, payments, discharge, PDF |
-| 7 | Dashboard, Pandas/Excel/PDF reports, notifications, audit logs |
+| **7 (this)** | Dashboard, Pandas/Excel/PDF reports, notifications, audit logs |
 | 8 | Advanced SQL, security, testing, final integration |
