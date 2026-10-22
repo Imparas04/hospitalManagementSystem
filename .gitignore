@@ -10,12 +10,17 @@ htmlcov/
 
 # Secrets / environment
 .env
+backend/.env
+backend/.venv/
 
 # IDE / OS junk
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Frontend dependencies
+frontend/node_modules/
 
 # Generated files (reports, uploads, logs)
 *.log
