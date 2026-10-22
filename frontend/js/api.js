@@ -1,57 +1,29 @@
-// Central API Service Layer (Flask REST API Ready)
-const API_BASE_URL = 'http://127.0.0.1:5000/api';
-const USE_MOCK = true; // Set to false when connecting to Python Flask backend
-
-const ApiService = {
-  // GET Requests (Read data)
-  async get(endpoint) {
-    if (USE_MOCK) {
-      const db = Store.getData();
-      if (endpoint === '/kpis') return { success: true, data: db.kpis };
-      if (endpoint === '/patients') return { success: true, data: db.patients };
-      if (endpoint === '/emergency') return { success: true, data: db.emergency };
-      if (endpoint === '/beds') return { success: true, data: db.beds };
-      return { success: false, message: 'Endpoint not found' };
+/* API client: JWT is attached to all protected calls; binary exports are downloaded as blobs. */
+const Api = (() => {
+  const BASE = localStorage.getItem('hospital_api_url') || 'http://127.0.0.1:5000/api';
+  const getToken = () => localStorage.getItem('hospital_access_token');
+  async function request(path, options = {}) {
+    const headers = new Headers(options.headers || {});
+    if (getToken()) headers.set('Authorization', `Bearer ${getToken()}`);
+    if (options.body && !(options.body instanceof FormData)) headers.set('Content-Type', 'application/json');
+    let response;
+    try { response = await fetch(`${BASE}${path}`, {...options, headers}); }
+    catch (_) { throw new Error(`Cannot reach backend at ${BASE}. Start Flask and check the API URL.`); }
+    const type = response.headers.get('content-type') || '';
+    const payload = type.includes('application/json') ? await response.json() : await response.text();
+    if (!response.ok || (payload && payload.success === false)) {
+      if (response.status === 401 && getToken()) { localStorage.removeItem('hospital_access_token'); localStorage.removeItem('hospital_user'); }
+      throw new Error(payload?.message || `Request failed (${response.status})`);
     }
-
-    try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`);
-      return await response.json();
-    } catch (error) {
-      console.error('API GET Error:', error);
-      return { success: false, message: error.message };
-    }
-  },
-
-  // POST Requests (Add new data)
-  async post(endpoint, payload) {
-    if (USE_MOCK) {
-      const db = Store.getData();
-      if (endpoint === '/patients') {
-        const newPatient = {
-          id: `P-${Math.floor(1000 + Math.random() * 9000)}`,
-          date: new Date().toISOString().split('T')[0],
-          status: 'Waiting',
-          ...payload
-        };
-        db.patients.unshift(newPatient);
-        db.kpis.totalPatients += 1;
-        Store.saveData(db);
-        return { success: true, data: newPatient };
-      }
-      return { success: false, message: 'Endpoint not found' };
-    }
-
-    try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      return await response.json();
-    } catch (error) {
-      console.error('API POST Error:', error);
-      return { success: false, message: error.message };
-    }
+    return payload?.data !== undefined ? payload.data : payload;
   }
-};
+  async function download(path, filename) {
+    const headers = {}; if (getToken()) headers.Authorization = `Bearer ${getToken()}`;
+    let response;
+    try { response = await fetch(`${BASE}${path}`, {headers}); } catch (_) { throw new Error('Could not reach backend.'); }
+    if (!response.ok) { let msg = `Download failed (${response.status})`; try { msg = (await response.json()).message || msg; } catch(_){} throw new Error(msg); }
+    const blob = await response.blob(), url = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  return {request, download, base: BASE};
+})();

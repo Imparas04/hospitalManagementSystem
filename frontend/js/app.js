@@ -1,157 +1,42 @@
-// Application Main Controller
-document.addEventListener("DOMContentLoaded", async () => {
-  // Real-time Clock
-  setInterval(() => {
-    const clockEl = document.getElementById("live-clock");
-    if (clockEl) {
-      clockEl.innerText = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    }
-  }, 1000);
-
-  // Load Initial Data
-  await loadDashboardKPIs();
-  initDashboardCharts();
-  await loadPatientsTable();
-  await loadEmergencyQueue();
-  setupRoleSwitcher();
-  setupPatientForm();
-});
-
-// 1. KPI Cards Loader
-async function loadDashboardKPIs() {
-  const res = await ApiService.get('/kpis');
-  if (!res.success) return;
-  const kpis = res.data;
-
-  document.getElementById('kpi-total-patients').innerText = kpis.totalPatients.toLocaleString();
-  document.getElementById('kpi-today-appts').innerText = kpis.todayAppointments;
-  document.getElementById('kpi-available-beds').innerText = kpis.availableBeds;
-  document.getElementById('kpi-occupied-beds').innerText = kpis.occupiedBeds;
-  document.getElementById('kpi-emergency').innerText = kpis.emergencyPatients;
-  document.getElementById('kpi-lab-tests').innerText = kpis.pendingLabTests;
-  document.getElementById('kpi-low-stock').innerText = kpis.lowStockMedicines;
-  document.getElementById('kpi-revenue').innerText = '₹' + kpis.todayRevenue.toLocaleString();
-}
-
-// 2. Chart.js Initializer
-function initDashboardCharts() {
-  // Patient Registration Trend (Line Chart)
-  const ctxTrend = document.getElementById('chart-patient-trend');
-  if (ctxTrend) {
-    new Chart(ctxTrend, {
-      type: 'line',
-      data: {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        datasets: [{
-          label: 'Registrations',
-          data: [65, 78, 90, 81, 105, 120, 95],
-          borderColor: '#0d6efd',
-          backgroundColor: 'rgba(13, 110, 253, 0.08)',
-          fill: true,
-          tension: 0.35
-        }]
-      },
-      options: { responsive: true, plugins: { legend: { display: false } } }
-    });
-  }
-
-  // Bed Occupancy (Doughnut Chart)
-  const ctxBeds = document.getElementById('chart-bed-status');
-  if (ctxBeds) {
-    new Chart(ctxBeds, {
-      type: 'doughnut',
-      data: {
-        labels: ['Occupied', 'Available', 'Reserved', 'Maintenance'],
-        datasets: [{
-          data: [76, 24, 8, 4],
-          backgroundColor: ['#ef4444', '#22c55e', '#eab308', '#64748b']
-        }]
-      },
-      options: { responsive: true, cutout: '70%' }
-    });
-  }
-}
-
-// 3. Patients Table Loader
-async function loadPatientsTable() {
-  const res = await ApiService.get('/patients');
-  if (!res.success) return;
-  const tbody = document.getElementById('patients-table-body');
-  if (!tbody) return;
-
-  tbody.innerHTML = res.data.map(p => `
-    <tr>
-      <td><span class="badge bg-light text-dark border">${p.id}</span></td>
-      <td class="fw-semibold text-primary">${p.name}</td>
-      <td>${p.gender}, ${p.age}y</td>
-      <td>${p.phone}</td>
-      <td>${p.dept}</td>
-      <td>${p.doctor}</td>
-      <td><span class="badge ${p.status === 'Admitted' ? 'bg-danger' : 'bg-success'}">${p.status}</span></td>
-      <td>
-        <button class="btn btn-sm btn-outline-primary" onclick="alert('Viewing patient details for: ${p.name}')">
-          <i class="bi bi-eye"></i> View
-        </button>
-      </td>
-    </tr>
-  `).join('');
-}
-
-// 4. Emergency Queue Loader
-async function loadEmergencyQueue() {
-  const res = await ApiService.get('/emergency');
-  if (!res.success) return;
-  const tbody = document.getElementById('emergency-table-body');
-  if (!tbody) return;
-
-  tbody.innerHTML = res.data.map(e => `
-    <tr>
-      <td><span class="badge badge-${e.triage.toLowerCase()}">${e.triage}</span></td>
-      <td class="fw-bold">${e.patient}</td>
-      <td><code>${e.vitals}</code></td>
-      <td>${e.doctor}</td>
-      <td><span class="badge bg-secondary">${e.bed}</span></td>
-      <td class="text-muted small">${e.arrival}</td>
-    </tr>
-  `).join('');
-}
-
-// 5. Patient Intake Form (Modal)
-function setupPatientForm() {
-  const form = document.getElementById('add-patient-form');
-  if (!form) return;
-
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const payload = {
-      name: document.getElementById('pt-name').value,
-      age: document.getElementById('pt-age').value,
-      gender: document.getElementById('pt-gender').value,
-      phone: document.getElementById('pt-phone').value,
-      dept: document.getElementById('pt-dept').value,
-      doctor: document.getElementById('pt-doctor').value
-    };
-
-    const res = await ApiService.post('/patients', payload);
-    if (res.success) {
-      bootstrap.Modal.getInstance(document.getElementById('modalAddPatient')).hide();
-      form.reset();
-      await loadPatientsTable();
-      await loadDashboardKPIs();
-      alert(`Patient registered successfully! Assigned ID: ${res.data.id}`);
-    }
-  });
-}
-
-// 6. Role Switcher Logic (RBAC Preview)
-function setupRoleSwitcher() {
-  const roleSelect = document.getElementById('role-select');
-  if (!roleSelect) return;
-
-  roleSelect.addEventListener('change', (e) => {
-    const role = e.target.value;
-    const badge = document.getElementById('current-role-badge');
-    if (badge) badge.innerText = role;
-    alert(`Switched role to: ${role}. Access permissions re-scoped.`);
-  });
-}
+const $ = (s, root=document) => root.querySelector(s);
+const $$ = (s, root=document) => [...root.querySelectorAll(s)];
+const esc = value => String(value ?? '—').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const today = new Date().toISOString().slice(0,10);
+const navItems = [
+ ['dashboard','◫','Dashboard','OVERVIEW'],['patients','♙','Patients','CARE MANAGEMENT'],['doctors','⚕','Doctors','CARE MANAGEMENT'],['appointments','▦','Appointments','CARE MANAGEMENT'],['emergency','✚','Emergency & Triage','CARE MANAGEMENT'],['beds','▤','Beds & Admissions','RESOURCES'],['laboratory','⚗','Laboratory','RESOURCES'],['pharmacy','✚','Pharmacy','RESOURCES'],['billing','₹','Billing','FINANCE'],['reports','▥','Reports & Exports','INSIGHTS'],['notifications','♧','Notifications','SYSTEM'],['users','♙','Users & Roles','SYSTEM'],['audit','≋','Audit Log','SYSTEM']
+];
+const pages = {
+ patients:{title:'Patients',endpoint:'/patients?per_page=100',list:'items',columns:[['patient_code','Patient ID'],['full_name','Name'],['gender','Gender'],['date_of_birth','Date of birth'],['phone','Phone'],['blood_group','Blood group']],create:{label:'Register patient',endpoint:'/patients',fields:[['full_name','Full name','text',true],['date_of_birth','Date of birth','date',true],['gender','Gender','select',true,['male','female','other']],['phone','Phone','tel',true],['email','Email','email'],['blood_group','Blood group','select',false,['A+','A-','B+','B-','AB+','AB-','O+','O-']],['address','Address','text'],['emergency_contact_name','Emergency contact name','text'],['emergency_contact_phone','Emergency contact phone','tel'],['is_emergency_registration','Emergency registration','checkbox']] }},
+ doctors:{title:'Doctors',endpoint:'/doctors',columns:[['id','ID'],['full_name','Doctor'],['department','Department'],['specialization','Specialization'],['consultation_fee','Consultation fee'],['is_active','Active']]},
+ appointments:{title:'Appointments',endpoint:'/appointments?per_page=100',list:'items',columns:[['id','ID'],['patient_name','Patient'],['doctor_name','Doctor'],['appointment_date','Date'],['appointment_time','Time'],['status','Status'],['reason','Reason']],create:{label:'Book appointment',endpoint:'/appointments',fields:[['patient_id','Patient ID','number',true],['doctor_id','Doctor ID','number',true],['appointment_date','Date','date',true],['appointment_time','Time','time',true],['reason','Reason','text',true],['notes','Notes','textarea'],['allow_waitlist','Allow waiting list','checkbox']]},actions:[['Complete','/appointments/{id}/complete'],['Cancel','/appointments/{id}/cancel']]},
+ emergency:{title:'Emergency & Triage',endpoint:'/triage/queue',columns:[['id','Case ID'],['patient_name','Patient'],['priority_level','Priority'],['priority_score','Score'],['oxygen_level','SpO₂'],['heart_rate','Heart rate'],['status','Status'],['recorded_at','Reported']],create:{label:'Record triage',endpoint:'/triage',fields:[['patient_id','Patient ID','number',true],['blood_pressure_systolic','Systolic BP','number',true],['blood_pressure_diastolic','Diastolic BP','number',true],['heart_rate','Heart rate','number',true],['oxygen_level','Oxygen level (%)','number',true],['temperature','Temperature °F','number',true],['symptoms','Symptoms','textarea',true],['icu_required','ICU required','checkbox'],['isolation_required','Isolation required','checkbox']]},actions:[['Resolve','/triage/{id}/resolve']]},
+ beds:{title:'Beds & Admissions',endpoint:'/beds',columns:[['id','Bed ID'],['bed_number','Bed'],['ward_name','Ward'],['bed_type','Type'],['status','Status'],['gender_restriction','Gender restriction']],create:{label:'Admit patient',endpoint:'/admissions',fields:[['patient_id','Patient ID','number',true],['doctor_id','Doctor ID','number',true],['bed_id','Bed ID','number',true],['reason','Admission reason','text',true],['icu_required','ICU required','checkbox'],['isolation_required','Isolation required','checkbox']]},actions:[]},
+ laboratory:{title:'Laboratory',endpoint:'/lab/orders',columns:[['id','Order ID'],['patient_name','Patient'],['test_name','Test'],['status','Status'],['ordered_at','Ordered'],['result','Result']],create:{label:'Order lab test',endpoint:'/lab/orders',fields:[['patient_id','Patient ID','number',true],['lab_test_id','Lab test ID','number',true],['priority','Priority','select',true,['routine','urgent','stat']],['notes','Notes','textarea']]},actions:[]},
+ pharmacy:{title:'Pharmacy & Stock',endpoint:'/pharmacy/medicines',columns:[['id','ID'],['name','Medicine'],['strength','Strength'],['form','Form'],['total_available','Available stock'],['reorder_level','Reorder level'],['unit_price','Unit price']],create:{label:'Add medicine',endpoint:'/pharmacy/medicines',fields:[['name','Medicine name','text',true],['generic_name','Generic name','text'],['unit','Unit','select',true,['tablet','syrup','injection','ointment','drops']],['unit_price','Unit price','number',true],['reorder_level','Low-stock threshold','number',true],['description','Description','textarea']] }},
+ billing:{title:'Billing & Payments',endpoint:'/bills?per_page=100',list:'items',columns:[['id','Bill ID'],['patient_name','Patient'],['total_amount','Total'],['paid_amount','Paid'],['outstanding_amount','Outstanding'],['status','Status'],['created_at','Created']],create:{label:'Generate bill',endpoint:'/bills',fields:[['patient_id','Patient ID','number'],['patient_code','Patient code','text'],['discount_percent','Discount %','number'],['tax_percent','Tax %','number']]},actions:[]},
+ users:{title:'Users & Roles',endpoint:'/users',columns:[['id','ID'],['username','Username'],['email','Email'],['role','Role'],['is_active','Active']],create:{label:'Create user',endpoint:'/users',fields:[['username','Username','text',true],['email','Email','email',true],['password','Temporary password','password',true],['role','Role','select',true,['admin','receptionist','doctor','nurse','lab_technician','pharmacist','billing_staff']],['full_name','Full name','text',true]]}},
+ audit:{title:'Audit Log',endpoint:'/audit-logs?per_page=100',list:'items',columns:[['created_at','Time'],['username','User'],['role','Role'],['action','Action'],['resource','Resource'],['record_id','Record ID'],['ip_address','IP address']]}
+};
+let currentPage='dashboard', currentData=[], currentConfig=null, charts=[];
+function toast(message, error=false){const el=$('#toast');el.textContent=message;el.classList.toggle('error',error);el.classList.remove('hidden');setTimeout(()=>el.classList.add('hidden'),5000)}
+function normalizeList(data, cfg){ if(Array.isArray(data)) return data; if(data&&cfg?.list&&Array.isArray(data[cfg.list])) return data[cfg.list]; if(data&&Array.isArray(data.items)) return data.items; if(data&&typeof data==='object') return [data]; return []; }
+function statusCell(v){if(typeof v==='boolean') return `<span class="status ${v?'available':'expired'}">${v?'Yes':'No'}</span>`;const s=String(v??'—');if(['status','priority_level','payment_status'].includes('status')){} if(/status|priority/i.test(s)||['available','occupied','maintenance','paid','unpaid','scheduled','completed','cancelled','waitlisted','critical','high','medium','low','reviewed','resolved','processing','pending','partially_paid','sample_collected'].includes(s)) return `<span class="status ${esc(s.toLowerCase())}">${esc(s.replaceAll('_',' '))}</span>`;return esc(v);}
+function navRender(){const nav=$('#navigation');let last='';nav.innerHTML=navItems.map(([id,icon,label,group])=>{const heading=group!==last?`<div class="nav-label nav-group">${group}</div>`:'';last=group;return `${heading}<button class="nav-item ${id===currentPage?'active':''}" data-page="${id}"><span class="nav-icon">${icon}</span><span class="nav-text">${label}</span></button>`}).join('');$$('[data-page]',nav).forEach(b=>b.onclick=()=>openPage(b.dataset.page));}
+function setIdentity(user){$('#user-name').textContent=user.full_name||user.username||'Staff member';$('#user-role').textContent=user.role?.name||user.role||'Staff';$('#user-avatar').textContent=(user.full_name||user.username||'U').slice(0,1).toUpperCase();}
+async function login(username,password){const result=await Api.request('/auth/login',{method:'POST',body:JSON.stringify({username,password})});localStorage.setItem('hospital_access_token',result.access_token);localStorage.setItem('hospital_user',JSON.stringify(result.user));setIdentity(result.user);$('#login-screen').classList.add('hidden');$('#app').classList.remove('hidden');navRender();await openPage('dashboard');await loadNotificationCount();}
+function showLogin(){ $('#app').classList.add('hidden');$('#login-screen').classList.remove('hidden'); }
+async function openPage(id){currentPage=id;currentConfig=pages[id]||null;navRender();$('#page-content').innerHTML='<div class="panel empty-state">Loading workspace…</div>';const nav=navItems.find(n=>n[0]===id);$('#page-title').textContent=nav?.[2]||'Dashboard';$('#section-eyebrow').textContent=nav?.[3]||'OVERVIEW';$('#today-label').textContent=new Date().toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'});try{if(id==='dashboard')await renderDashboard();else if(id==='reports')await renderReports();else if(id==='notifications')await renderNotifications();else if(id==='laboratory')await renderLab();else await renderTablePage(id);}catch(e){$('#page-content').innerHTML=`<div class="panel empty-state"><strong>Could not load ${esc($('#page-title').textContent)}</strong><p>${esc(e.message)}</p><button class="btn secondary" onclick="openPage('${id}')">Try again</button></div>`;}}
+async function renderDashboard(){const data=await Api.request('/dashboard');const cards=data.cards||[];const icons=['♙','▦','▤','✚','⚗','✚','₹','↗'];$('#page-content').innerHTML=`<div class="stats-grid">${cards.map((c,i)=>`<div class="stat-card"><div class="stat-top"><span class="stat-label">${esc(c.label)}</span><span class="stat-icon">${icons[i%icons.length]}</span></div><div class="stat-value">${esc(formatStat(c.value,c.format))}</div><div class="stat-note">Live data · ${esc(data.date||today)}</div></div>`).join('')}</div><div class="dashboard-grid"><div class="panel"><div class="panel-head"><div><h3>Patient registration trend</h3><p>Recent patient registrations</p></div><span class="status available">Live</span></div><div class="chart-wrap"><canvas id="registration-chart"></canvas></div></div><div class="panel"><div class="panel-head"><div><h3>Bed occupancy</h3><p>Current resource utilization</p></div></div><div class="chart-wrap"><canvas id="beds-chart"></canvas></div></div></div><div class="panel"><div class="panel-head"><div><h3>Quick actions</h3><p>Jump straight into common workflows</p></div></div><div class="quick-grid"><button class="quick-action" data-quick="patients"><span>♙</span><strong>Register patient</strong><small>Add a patient record</small></button><button class="quick-action" data-quick="appointments"><span>▦</span><strong>Book appointment</strong><small>Schedule a consultation</small></button><button class="quick-action" data-quick="emergency"><span>✚</span><strong>Emergency triage</strong><small>Record patient vitals</small></button><button class="quick-action" data-quick="reports"><span>▥</span><strong>Export reports</strong><small>CSV, Excel and PDF</small></button></div></div>`;$$('[data-quick]').forEach(b=>b.onclick=()=>openPage(b.dataset.quick));charts.forEach(c=>c.destroy());charts=[];await loadChart('/analytics/patient-registrations?days=14','registration-chart','line');await loadChart('/analytics/bed-occupancy','beds-chart','doughnut');}
+function formatStat(v,fmt){if(v===null||v===undefined)return '—';if(fmt==='currency')return new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:0}).format(v);return new Intl.NumberFormat('en-IN').format(v)}
+async function loadChart(endpoint,id,type){try{const d=await Api.request(endpoint),canvas=$('#'+id);if(!canvas)return;const datasets=(d.datasets||[]).map(x=>({label:x.label,data:x.data,borderColor:x.borderColor||'#246bfe',backgroundColor:type==='line'?(x.backgroundColor||'#246bfe22'):(x.backgroundColor||['#246bfe','#14b8a6','#e9a23b','#e85d75']),fill:type==='line',tension:.35,borderWidth:2}));charts.push(new Chart(canvas,{type,data:{labels:d.labels||[],datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:type!=='line',position:'bottom',labels:{boxWidth:9,usePointStyle:true,font:{size:10}}}},scales:type==='doughnut'?{}:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{beginAtZero:true,grid:{color:'#eef1f6'},ticks:{font:{size:10}}}}}}));}catch(e){const canvas=$('#'+id);if(canvas){canvas.parentElement.innerHTML=`<div class="empty-state"><strong>Chart unavailable</strong><small>${esc(e.message)}</small></div>`;}}}
+async function renderTablePage(id){const cfg=pages[id];if(!cfg)throw new Error('This module is not configured.');const data=await Api.request(cfg.endpoint);currentData=normalizeList(data,cfg);const cols=cfg.columns||[];$('#page-content').innerHTML=`<div class="page-toolbar"><div class="toolbar-left"><input id="table-search" class="search-input" placeholder="Search visible records…"><span class="muted">${currentData.length} records loaded</span></div><div>${cfg.create?`<button id="create-btn" class="btn primary">＋ ${esc(cfg.create.label)}</button>`:''}</div></div><div class="table-wrap"><table><thead><tr>${cols.map(c=>`<th>${esc(c[1])}</th>`).join('')}<th>Actions</th></tr></thead><tbody id="table-body"></tbody></table></div><div class="pagination"><span id="table-count"></span><button id="table-reload" class="btn secondary">↻ Reload</button></div>`;renderRows(currentData,cfg);$('#table-search').oninput=e=>{const q=e.target.value.toLowerCase();renderRows(currentData.filter(r=>JSON.stringify(r).toLowerCase().includes(q)),cfg)};$('#table-reload').onclick=()=>openPage(id);if(cfg.create)$('#create-btn').onclick=()=>openCreate(cfg.create);}
+function renderRows(rows,cfg){const tbody=$('#table-body');if(!tbody)return;const cols=cfg.columns||[];tbody.innerHTML=rows.length?rows.map(row=>`<tr>${cols.map(c=>`<td>${c[0]==='status'||c[0].includes('priority')?statusCell(row[c[0]]):statusCell(row[c[0]])}</td>`).join('')}<td><div class="row-actions">${(cfg.actions||[]).map(a=>`<button class="text-btn" data-action="${esc(a[1].replace('{id}',row.id))}" data-label="${esc(a[0])}">${esc(a[0])}</button>`).join('')}${cfg===pages.beds&&row.status==='available'?`<button class="text-btn" data-bed-maintenance="${row.id}">Maintenance</button>`:''}</div></td></tr>`).join(''):`<tr><td colspan="${cols.length+1}"><div class="empty-state"><strong>No records found</strong><span>Data will appear here when records exist and your role has permission.</span></div></td></tr>`;$('#table-count').textContent=`Showing ${rows.length} record${rows.length===1?'':'s'}`;$$('[data-action]',tbody).forEach(b=>b.onclick=async()=>{if(!confirm(`${b.dataset.label} this record?`))return;try{await Api.request(b.dataset.action,{method:'POST',body:JSON.stringify({})});toast(`${b.dataset.label} successful`);await openPage(currentPage)}catch(e){toast(e.message,true)}});$$('[data-bed-maintenance]',tbody).forEach(b=>b.onclick=async()=>{try{await Api.request(`/beds/${b.dataset.bedMaintenance}`,{method:'PUT',body:JSON.stringify({status:'maintenance'})});toast('Bed marked for maintenance');await openPage(currentPage)}catch(e){toast(e.message,true)}});}
+function openCreate(config){$('#dialog-title').textContent=config.label;$('#dialog-error').textContent='';$('#dialog-fields').innerHTML=config.fields.map(([name,label,type='text',required=false,options=[]])=>{if(type==='checkbox')return `<label class="span-2"><input style="width:auto;margin-right:8px" type="checkbox" name="${name}"> ${esc(label)}</label>`;if(type==='select')return `<label>${esc(label)}${required?' *':''}<select name="${name}" ${required?'required':''}><option value="">Select…</option>${options.map(o=>`<option value="${esc(o)}">${esc(o.replaceAll('_',' '))}</option>`).join('')}</select></label>`;if(type==='textarea')return `<label class="span-2">${esc(label)}${required?' *':''}<textarea name="${name}" ${required?'required':''} rows="3"></textarea></label>`;return `<label>${esc(label)}${required?' *':''}<input name="${name}" type="${type}" ${required?'required':''} ${type==='date'&&name==='date_of_birth'?'max="'+today+'"':''}></label>`}).join('');$('#record-dialog').dataset.endpoint=config.endpoint;$('#record-dialog').showModal();}
+$('#record-form').addEventListener('submit',async e=>{e.preventDefault();const form=e.currentTarget,endpoint=$('#record-dialog').dataset.endpoint,data={};for(const el of $$('[name]',form)){if(el.type==='checkbox')data[el.name]=el.checked;else if(el.value!==''){data[el.name]=['number'].includes(el.type)?Number(el.value):el.value;}}try{await Api.request(endpoint,{method:'POST',body:JSON.stringify(data)});$('#record-dialog').close();toast('Record saved successfully');await openPage(currentPage)}catch(err){$('#dialog-error').textContent=err.message;}});
+async function renderReports(){const reports=await Api.request('/reports');$('#page-content').innerHTML=`<div class="panel" style="margin-bottom:17px"><div class="panel-head"><div><h3>Reports & exports</h3><p>Generate consistent reports for hospital operations and administration.</p></div></div><p class="muted">Choose JSON to preview data, or export CSV, Excel and PDF. Downloads are authenticated through your session.</p></div><div class="report-grid">${reports.map(r=>`<div class="report-card"><div class="stat-icon">▥</div><h3 style="margin-top:15px">${esc(r.title||r.type)}</h3><p>Report type: ${esc(r.type)}. Includes the data available to your role.</p><div class="report-actions"><button class="btn secondary" data-report="${esc(r.type)}" data-format="json">Preview</button><button class="btn secondary" data-report="${esc(r.type)}" data-format="csv">CSV</button><button class="btn secondary" data-report="${esc(r.type)}" data-format="xlsx">Excel</button><button class="btn primary" data-report="${esc(r.type)}" data-format="pdf">PDF</button></div></div>`).join('')}</div><div id="report-preview" style="margin-top:17px"></div>`;$$('[data-report]').forEach(b=>b.onclick=async()=>{const type=b.dataset.report,fmt=b.dataset.format;try{if(fmt==='json'){const d=await Api.request(`/reports/${type}?format=json`);$('#report-preview').innerHTML=`<div class="panel"><div class="panel-head"><h3>${esc(type)} preview</h3><button class="btn secondary" id="close-preview">Close</button></div><pre style="white-space:pre-wrap;overflow:auto;max-height:450px;font-size:11px">${esc(JSON.stringify(d,null,2))}</pre></div>`;$('#close-preview').onclick=()=>$('#report-preview').innerHTML='';}else{await Api.download(`/reports/${type}?format=${fmt}`,`${type}_${today}.${fmt==='xlsx'?'xlsx':fmt}`);toast(`${fmt.toUpperCase()} export started`);}}catch(e){toast(e.message,true)}});}
+async function renderNotifications(){const data=await Api.request('/notifications?per_page=100');const notes=data.items||[];$('#page-content').innerHTML=`<div class="page-toolbar"><div><h3>Notifications & alerts</h3><p class="muted">Operational events visible to your account.</p></div><button id="read-all" class="btn secondary">Mark all read</button></div><div class="panel">${notes.length?notes.map(n=>`<div class="notification-item"><div class="notification-dot" style="${n.is_read?'background:#ccd3df':''}"></div><div style="flex:1"><strong>${esc(n.title||n.type||'Notification')}</strong><p>${esc(n.message||n.description||'')}</p><small>${esc(n.created_at||'')}</small></div>${!n.is_read?`<button class="text-btn" data-read="${n.id}">Mark read</button>`:''}</div>`).join(''):'<div class="empty-state"><strong>You are all caught up</strong><span>No notifications are available.</span></div>'}</div>`;$('#read-all').onclick=async()=>{try{await Api.request('/notifications/read-all',{method:'POST',body:'{}'});toast('All notifications marked as read');await renderNotifications();await loadNotificationCount()}catch(e){toast(e.message,true)}};$$('[data-read]').forEach(b=>b.onclick=async()=>{try{await Api.request(`/notifications/${b.dataset.read}/read`,{method:'POST',body:'{}'});await renderNotifications();await loadNotificationCount()}catch(e){toast(e.message,true)}});}
+async function renderLab(){await renderTablePage('laboratory');const host=$('#page-content');const extra=document.createElement('div');extra.className='panel';extra.style.marginTop='16px';extra.innerHTML='<div class="panel-head"><div><h3>Lab workflow actions</h3><p>Advance an order, enter results or review a result by order ID.</p></div></div><div class="form-grid"><label>Order ID<input id="lab-order-id" type="number" min="1" placeholder="Order ID"></label><label>Action<select id="lab-action"><option value="sample_collected">Mark sample collected</option><option value="processing">Mark processing</option><option value="result">Enter result</option><option value="review">Review result</option></select></label><label class="span-2">Result / notes<textarea id="lab-result" rows="2" placeholder="Required when entering a result"></textarea></label></div><div style="margin-top:13px"><button id="lab-action-btn" class="btn primary">Apply action</button></div>';host.append(extra);$('#lab-action-btn').onclick=async()=>{const id=$('#lab-order-id').value,action=$('#lab-action').value,result=$('#lab-result').value;if(!id)return toast('Enter an order ID',true);try{if(action==='result')await Api.request(`/lab/orders/${id}/result`,{method:'POST',body:JSON.stringify({result_value:result})});else if(action==='review')await Api.request(`/lab/orders/${id}/review`,{method:'POST',body:JSON.stringify({reviewer_notes:result})});else await Api.request(`/lab/orders/${id}/status`,{method:'PUT',body:JSON.stringify({status:action})});toast('Lab action completed');await openPage('laboratory')}catch(e){toast(e.message,true)}};}
+async function loadNotificationCount(){try{const d=await Api.request('/notifications/unread-count');const n=d.unread_count||0;$('#notification-count').textContent=n;$('#notification-count').classList.toggle('hidden',!n)}catch(_){}}
+$('#login-form').addEventListener('submit',async e=>{e.preventDefault();$('#login-error').textContent='';try{await login($('#login-username').value.trim(),$('#login-password').value)}catch(err){$('#login-error').textContent=err.message}});
+$('#logout-btn').onclick=()=>{localStorage.removeItem('hospital_access_token');localStorage.removeItem('hospital_user');showLogin()};$('#refresh-btn').onclick=()=>openPage(currentPage);$('#notification-btn').onclick=()=>openPage('notifications');$('#dialog-close').onclick=$('#dialog-cancel').onclick=()=>$('#record-dialog').close();
+(async function boot(){try{const token=localStorage.getItem('hospital_access_token'),raw=localStorage.getItem('hospital_user');if(token&&raw){const user=JSON.parse(raw);setIdentity(user);$('#login-screen').classList.add('hidden');$('#app').classList.remove('hidden');navRender();await openPage('dashboard');await loadNotificationCount();}else showLogin();}catch(_){showLogin()}})();
