@@ -1,0 +1,44 @@
+# docker compose up --build
+# Needs a file named ".env" in THIS folder (copy backend/.env.example) with at least:
+#   DB_PASSWORD, JWT_SECRET_KEY, ADMIN_USERNAME, ADMIN_EMAIL, ADMIN_PASSWORD
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+      MYSQL_DATABASE: ${DB_NAME:-hospital_db}
+    volumes:
+      - dbdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${DB_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_USER: root
+      DB_NAME: ${DB_NAME:-hospital_db}
+      CORS_ORIGINS: http://127.0.0.1:8080,http://localhost:8080
+    ports:
+      - "5000:5000"
+
+  frontend:
+    image: nginx:alpine
+    restart: unless-stopped
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+    ports:
+      - "8080:80"
+
+volumes:
+  dbdata:

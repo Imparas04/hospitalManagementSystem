@@ -27,6 +27,7 @@ ROLE_PERMISSIONS = {
         "appointments:read", "appointments:update",
         "wards:read", "beds:read", "admissions:read",
         "prescriptions:read", "prescriptions:create",
+        "medicines:read",                      # a doctor must be able to look medicines up to prescribe them
         "lab:order", "lab:read", "lab:review",
         "triage:read", "triage:update",
         "discharge:create", "discharge:read",
@@ -48,7 +49,7 @@ ROLE_PERMISSIONS = {
         "analytics:lab",
     },
     ROLE_PHARMACIST: {
-        "prescriptions:read", "pharmacy:read", "pharmacy:update", "pharmacy:issue",
+        "prescriptions:read", "pharmacy:read", "pharmacy:update", "pharmacy:issue", "medicines:read",
         "analytics:medicine", "reports:pharmacy",
     },
     ROLE_BILLING: {

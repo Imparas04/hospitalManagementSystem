@@ -54,6 +54,8 @@ class Bed(db.Model):
         return {
             "id": self.id, "ward_id": self.ward_id, "ward_name": self.ward.name if self.ward else None,
             "bed_number": self.bed_number, "bed_type": self.bed_type, "status": self.status,
+            "ward_type": self.ward.ward_type if self.ward else None,
+            "gender_restriction": self.ward.gender_restriction if self.ward else None,
         }
 
 

@@ -19,6 +19,10 @@ def register_error_handlers(app):
     def expired_token(jwt_header, jwt_payload):
         return error_response("Token has expired, please log in again", status=401)
 
+    @jwt.revoked_token_loader
+    def revoked_token(jwt_header, jwt_payload):
+        return error_response("You have been logged out, please log in again", status=401)
+
     # ---- Generic errors ----
     @app.errorhandler(HTTPException)
     def handle_http_error(err):

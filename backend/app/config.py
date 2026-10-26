@@ -46,7 +46,17 @@ class Config:
     PAYMENT_PENDING_AFTER_DAYS = int(os.getenv("PAYMENT_PENDING_AFTER_DAYS", "0"))  # 0 = every unpaid bill
     NOTIFICATION_SCAN_INTERVAL_SECONDS = int(os.getenv("NOTIFICATION_SCAN_INTERVAL_SECONDS", "60"))
 
-    CORS_ORIGINS = [o.strip() for o in os.getenv("CORS_ORIGINS", "*").split(",") if o.strip()]
+    # Which website addresses may call this API from a browser. Default = the local frontend only.
+    # (Never use "*" on a real server - list the exact frontend URL(s) in .env instead.)
+    CORS_ORIGINS = [o.strip() for o in os.getenv(
+        "CORS_ORIGINS", "http://127.0.0.1:8080,http://localhost:8080").split(",") if o.strip()]
+
+    # Login protection: after LOGIN_MAX_ATTEMPTS wrong passwords the user must wait LOGIN_LOCKOUT_MINUTES.
+    LOGIN_MAX_ATTEMPTS = int(os.getenv("LOGIN_MAX_ATTEMPTS", "5"))
+    LOGIN_LOCKOUT_MINUTES = int(os.getenv("LOGIN_LOCKOUT_MINUTES", "15"))
+
+    # Password hashing method (werkzeug). Default is strong + slow on purpose; tests use a cheap one.
+    PASSWORD_HASH_METHOD = os.getenv("PASSWORD_HASH_METHOD", "scrypt")
 
 
 class TestingConfig(Config):
@@ -56,3 +66,4 @@ class TestingConfig(Config):
     NOTIFICATION_SCAN_INTERVAL_SECONDS = 0   # always re-scan in tests
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
     JWT_SECRET_KEY = "test-only-secret-key-not-for-real-use-0123456789"
+    PASSWORD_HASH_METHOD = "pbkdf2:sha256:1"   # super cheap hash -> the 500+ tests run in ~1 minute

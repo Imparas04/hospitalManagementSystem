@@ -1,4 +1,5 @@
-"""Command-line helpers:  flask init-db | seed-roles | create-admin | seed-demo-users"""
+"""Command-line helpers:
+  flask init-db | seed-roles | create-admin | seed-demo-users | seed-demo-data | seed-demo-doctors"""
 import os
 
 import click
@@ -74,3 +75,22 @@ def register_cli(app):
                 "full_name": f"Demo {role.replace('_', ' ').title()}", "role": role})
             created += 1
         click.echo(f"Demo users created: {created}")
+
+    @app.cli.command("seed-demo-data")
+    def seed_demo_data_cmd():
+        """Add starter departments, wards + beds, lab tests and medicines (safe to run again)."""
+        from app.services import demo_data
+        added = demo_data.seed_master_data()
+        click.echo("Added: " + ", ".join(f"{count} {name.replace('_', ' ')}" for name, count in added.items()))
+
+    @app.cli.command("seed-demo-doctors")
+    @click.option("--password", prompt=True, hide_input=True, confirmation_prompt=True,
+                  help="Password given to the demo doctor accounts (for local testing only).")
+    def seed_demo_doctors_cmd(password):
+        """Create demo doctors (dr_sharma, dr_mehta, ...) with profiles and weekly timetables."""
+        from app.services import demo_data
+        pw_error = validate_password(password)
+        if pw_error:
+            raise click.ClickException(pw_error)
+        seed_roles()
+        click.echo(f"Doctor profiles added: {demo_data.seed_demo_doctors(password)}")

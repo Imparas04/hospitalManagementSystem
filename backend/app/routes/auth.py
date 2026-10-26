@@ -1,8 +1,10 @@
 from flask import Blueprint, current_app, g, request
+from flask_jwt_extended import get_jwt
 
 from app.extensions import db
 from app.middleware.auth import login_required
 from app.services.auth_service import authenticate, make_token
+from app.utils import token_blocklist
 from app.utils.responses import error_response, success_response
 from app.utils.validators import validate_password
 
@@ -23,10 +25,22 @@ def login():
     if errors:
         return error_response("Validation failed", errors, 400)
 
+    # Too many wrong passwords recently? Make the person wait (brute-force protection).
+    guard = current_app.extensions["login_guard"]
+    key = (login_id.strip().lower(), request.remote_addr)
+    wait = guard.seconds_until_allowed(key)
+    if wait:
+        response, status = error_response(
+            f"Too many failed login attempts. Please try again in {-(-wait // 60)} minute(s).", status=429)
+        response.headers["Retry-After"] = str(wait)
+        return response, status
+
     user = authenticate(login_id.strip(), password)
     if user is None:
+        guard.record_failure(key)
         # Same message for wrong user / wrong password / inactive: do not leak which one.
         return error_response("Invalid username or password", status=401)
+    guard.reset(key)
 
     return success_response("Login successful", {
         "access_token": make_token(user),
@@ -61,3 +75,12 @@ def change_password():
     g.current_user.set_password(new)
     db.session.commit()
     return success_response("Password changed successfully")
+
+
+@bp.post("/logout")
+@login_required
+def logout():
+    """Make the current token useless right now (it can no longer be used even before it expires)."""
+    claims = get_jwt()
+    token_blocklist.revoke(claims["jti"], claims["exp"])
+    return success_response("Logged out")

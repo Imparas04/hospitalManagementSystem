@@ -10,8 +10,6 @@ htmlcov/
 
 # Secrets / environment
 .env
-backend/.env
-backend/.venv/
 
 # IDE / OS junk
 .vscode/
@@ -19,10 +17,12 @@ backend/.venv/
 .DS_Store
 Thumbs.db
 
-# Frontend dependencies
-frontend/node_modules/
-
 # Generated files (reports, uploads, logs)
 *.log
 instance/
 generated_reports/
+
+# Local databases / test leftovers
+*.db
+*.sqlite3
+node_modules/

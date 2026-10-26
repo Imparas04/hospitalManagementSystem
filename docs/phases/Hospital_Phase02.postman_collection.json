@@ -1,0 +1,326 @@
+{
+  "info": {
+    "name": "Hospital Backend - Phase 2 (Patients)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000/api"
+    },
+    {
+      "key": "token_admin",
+      "value": ""
+    },
+    {
+      "key": "token_receptionist",
+      "value": ""
+    },
+    {
+      "key": "token_doctor",
+      "value": ""
+    },
+    {
+      "key": "token_nurse",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Logins",
+      "item": [
+        {
+          "name": "Login (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"Admin12345\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('token_admin', j.data.access_token); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (receptionist)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"demo_receptionist\",\n  \"password\": \"Demo12345\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('token_receptionist', j.data.access_token); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (doctor)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"demo_doctor\",\n  \"password\": \"Demo12345\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('token_doctor', j.data.access_token); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (nurse)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"demo_nurse\",\n  \"password\": \"Demo12345\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('token_nurse', j.data.access_token); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Patients",
+      "item": [
+        {
+          "name": "Create patient",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_receptionist}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/patients",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Ramesh Kulkarni\",\n  \"date_of_birth\": \"1990-05-15\",\n  \"gender\": \"male\",\n  \"blood_group\": \"B+\",\n  \"phone\": \"+919876543210\",\n  \"email\": \"ramesh@test.com\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Create patient (emergency, minimal)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_receptionist}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/patients",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Unknown Male\",\n  \"date_of_birth\": \"1985-01-01\",\n  \"gender\": \"male\",\n  \"phone\": \"0000000000\",\n  \"is_emergency_registration\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "List / search patients",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_receptionist}}"
+              }
+            ],
+            "url": "{{base_url}}/patients?q=Ramesh&page=1&per_page=10"
+          }
+        },
+        {
+          "name": "Get patient (with history)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_doctor}}"
+              }
+            ],
+            "url": "{{base_url}}/patients/1?include_history=true"
+          }
+        },
+        {
+          "name": "Update patient",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_receptionist}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/patients/1",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+919876500099\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Deactivate patient",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_receptionist}}"
+              }
+            ],
+            "url": "{{base_url}}/patients/1"
+          }
+        },
+        {
+          "name": "Add medical history (doctor)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_doctor}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/patients/1/medical-history",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"condition_type\": \"allergy\",\n  \"description\": \"Penicillin allergy\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List medical history",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_nurse}}"
+              }
+            ],
+            "url": "{{base_url}}/patients/1/medical-history"
+          }
+        },
+        {
+          "name": "Record a visit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_receptionist}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/patients/1/visits",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"visit_type\": \"opd\",\n  \"reason\": \"Fever checkup\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List visits",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_nurse}}"
+              }
+            ],
+            "url": "{{base_url}}/patients/1/visits"
+          }
+        }
+      ]
+    }
+  ]
+}

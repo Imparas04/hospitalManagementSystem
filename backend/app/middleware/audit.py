@@ -53,6 +53,7 @@ def _fields(body):
 
 AUDIT_RULES = {
     # ---- account ----------------------------------------------------------------
+    ("POST", "/api/auth/logout"): R("auth.logout", "User", lambda d, a, b: "Logged out", own_id=True),
     ("POST", "/api/auth/change-password"): R("auth.change_password", "User", lambda d, a, b: "Changed own password", own_id=True),
     ("POST", "/api/users"): R("user.create", "User", lambda d, a, b: f"Created user {S(d,'username')} with role {S(d,'role')}"),
     ("PUT", "/api/users/<int:user_id>"): R("user.update", "User", lambda d, a, b: f"Updated user {S(d,'username')} (fields: {_fields(b)})", id_arg="user_id"),

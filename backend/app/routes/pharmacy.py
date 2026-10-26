@@ -36,7 +36,7 @@ def create_medicine():
 
 
 @bp.get("/pharmacy/medicines")
-@permission_required("pharmacy:read")
+@permission_required("medicines:read")
 def list_medicines():
     """Query params: q (search name), low_stock=true."""
     medicines = pharmacy_service.search_medicines(request.args)
@@ -44,7 +44,7 @@ def list_medicines():
 
 
 @bp.get("/pharmacy/medicines/<int:medicine_id>")
-@permission_required("pharmacy:read")
+@permission_required("medicines:read")
 def get_medicine(medicine_id):
     medicine = db.session.get(Medicine, medicine_id)
     if not medicine:

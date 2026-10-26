@@ -1,0 +1,372 @@
+{
+  "info": {
+    "name": "Hospital Backend - Phase 4 (Triage & Smart Bed)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000/api"
+    },
+    {
+      "key": "token_admin",
+      "value": ""
+    },
+    {
+      "key": "token_nurse",
+      "value": ""
+    },
+    {
+      "key": "token_doctor",
+      "value": ""
+    },
+    {
+      "key": "patient_id",
+      "value": ""
+    },
+    {
+      "key": "doctor_id",
+      "value": ""
+    },
+    {
+      "key": "icu_ward_id",
+      "value": ""
+    },
+    {
+      "key": "triage_id",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Logins",
+      "item": [
+        {
+          "name": "Login (admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"Admin12345\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('token_admin', j.data.access_token); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (nurse)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"demo_nurse\",\n  \"password\": \"Demo12345\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('token_nurse', j.data.access_token); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login (doctor)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"demo_doctor\",\n  \"password\": \"Demo12345\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('token_doctor', j.data.access_token); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Setup for smart allocation (needs patient_id and doctor_id from Phases 2-3)",
+      "item": [
+        {
+          "name": "Create ICU ward",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/wards",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"ICU Block\",\n  \"ward_type\": \"icu\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('icu_ward_id', j.data.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Add ICU bed",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/wards/{{icu_ward_id}}/beds",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bed_number\": \"ICU-1\",\n  \"bed_type\": \"icu\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Create female-only ward",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_admin}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/wards",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Women's Ward\",\n  \"ward_type\": \"general\",\n  \"gender_restriction\": \"female\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Triage and emergency queue",
+      "item": [
+        {
+          "name": "Record triage - LOW priority",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_nurse}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/triage",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patient_id\": \"{{patient_id}}\",\n  \"blood_pressure_systolic\": 120,\n  \"blood_pressure_diastolic\": 80,\n  \"heart_rate\": 75,\n  \"oxygen_level\": 98,\n  \"temperature\": 98.6,\n  \"symptoms\": \"Minor cut on finger\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Record triage - CRITICAL priority (ICU)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_nurse}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/triage",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"patient_id\": \"{{patient_id}}\",\n  \"blood_pressure_systolic\": 190,\n  \"blood_pressure_diastolic\": 110,\n  \"heart_rate\": 145,\n  \"oxygen_level\": 86,\n  \"temperature\": 103.5,\n  \"symptoms\": \"Chest pain, difficulty breathing\",\n  \"emergency_condition\": \"Suspected cardiac event\",\n  \"icu_required\": true\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "var j = pm.response.json();",
+                  "if (j.success) { pm.collectionVariables.set('triage_id', j.data.id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Emergency queue (critical should be first)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_doctor}}"
+              }
+            ],
+            "url": "{{base_url}}/triage/queue"
+          }
+        },
+        {
+          "name": "List triage records",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_nurse}}"
+              }
+            ],
+            "url": "{{base_url}}/triage?priority_level=critical"
+          }
+        },
+        {
+          "name": "Get triage record",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_nurse}}"
+              }
+            ],
+            "url": "{{base_url}}/triage/{{triage_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Smart bed allocation",
+      "item": [
+        {
+          "name": "Allocate bed automatically",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_nurse}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/triage/{{triage_id}}/allocate-bed",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"doctor_id\": \"{{doctor_id}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update triage status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_doctor}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/triage/{{triage_id}}/status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"in_treatment\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Resolve triage",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token_nurse}}"
+              }
+            ],
+            "url": "{{base_url}}/triage/{{triage_id}}/resolve"
+          }
+        }
+      ]
+    }
+  ]
+}

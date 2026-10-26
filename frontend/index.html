@@ -1,31 +1,75 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Smart Hospital | Operations</title>
   <link rel="stylesheet" href="css/style.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body>
+  <!-- ===== Login screen ===== -->
   <section id="login-screen" class="login-wrap">
     <form id="login-form" class="login-card">
-      <div class="brand-mark">+</div><p class="eyebrow">SMART HOSPITAL SYSTEM</p><h1>Welcome back</h1><p class="muted">Sign in to manage hospital operations.</p>
+      <div class="brand-mark">+</div>
+      <p class="eyebrow">SMART HOSPITAL SYSTEM</p>
+      <h1>Welcome back</h1>
+      <p class="muted">Sign in to manage hospital operations.</p>
       <label>Username or email<input id="login-username" name="username" autocomplete="username" required placeholder="Enter username"></label>
       <label>Password<input id="login-password" name="password" type="password" autocomplete="current-password" required placeholder="Enter password"></label>
-      <button class="btn primary full" type="submit">Sign in</button><p id="login-error" class="error-text"></p>
-      <p class="tiny muted">Use the administrator account created with <code>flask create-admin</code>.</p>
+      <button class="btn primary full" type="submit">Sign in</button>
+      <p id="login-error" class="error-text"></p>
+      <p class="tiny muted">First time? Create the administrator with <code>flask --app run.py create-admin</code>.</p>
     </form>
   </section>
+
+  <!-- ===== Main application ===== -->
   <div id="app" class="app-shell hidden">
-    <aside class="sidebar"><div class="brand"><div class="brand-mark small">+</div><div><strong>CarePoint</strong><small>Hospital OS</small></div></div>
-      <div class="nav-label">WORKSPACE</div><nav id="navigation"></nav>
-      <div class="sidebar-bottom"><div class="user-avatar" id="user-avatar">U</div><div class="user-info"><strong id="user-name">User</strong><small id="user-role">Role</small></div><button id="logout-btn" class="icon-btn" title="Sign out">↗</button></div>
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark small">+</div><div><strong>CarePoint</strong><small>Hospital OS</small></div></div>
+      <nav id="navigation"></nav>
+      <div class="sidebar-bottom">
+        <div class="user-avatar" id="user-avatar">U</div>
+        <div class="user-info"><strong id="user-name">User</strong><small id="user-role">Role</small></div>
+        <button id="password-btn" class="icon-btn" title="Change my password">⚿</button>
+        <button id="logout-btn" class="icon-btn" title="Sign out">↗</button>
+      </div>
     </aside>
-    <main class="main-area"><header class="topbar"><div><p class="eyebrow" id="section-eyebrow">OVERVIEW</p><h1 id="page-title">Dashboard</h1></div><div class="top-actions"><span class="date-chip" id="today-label"></span><button id="refresh-btn" class="btn secondary">↻ Refresh</button><button id="notification-btn" class="notification-btn" title="Notifications">♧ <span id="notification-count" class="count hidden">0</span></button></div></header>
-      <div id="toast" class="toast hidden"></div><section id="page-content"></section>
+    <main class="main-area">
+      <header class="topbar">
+        <div><p class="eyebrow" id="section-eyebrow">OVERVIEW</p><h1 id="page-title">Dashboard</h1></div>
+        <div class="top-actions">
+          <span class="date-chip" id="today-label"></span>
+          <button id="refresh-btn" class="btn secondary">↻ Refresh</button>
+          <button id="notification-btn" class="notification-btn" title="Notifications">♧ <span id="notification-count" class="count hidden">0</span></button>
+        </div>
+      </header>
+      <div id="toast" class="toast hidden"></div>
+      <section id="page-content"></section>
       <footer>Smart Hospital Operations <span>•</span> Secure role-based workspace</footer>
     </main>
   </div>
-  <dialog id="record-dialog"><form id="record-form" method="dialog"><div class="dialog-head"><div><p class="eyebrow">RECORD MANAGEMENT</p><h2 id="dialog-title">New record</h2></div><button type="button" class="icon-btn" id="dialog-close">✕</button></div><div id="dialog-fields" class="form-grid"></div><p id="dialog-error" class="error-text"></p><div class="dialog-actions"><button type="button" id="dialog-cancel" class="btn secondary">Cancel</button><button type="submit" class="btn primary">Save record</button></div></form></dialog>
-  <script src="js/api.js"></script><script src="js/app.js"></script>
-</body></html>
+
+  <!-- ===== One shared pop-up used by every form and detail view ===== -->
+  <dialog id="dialog">
+    <div class="dialog-box">
+      <div class="dialog-head">
+        <div><p class="eyebrow" id="dialog-eyebrow"></p><h2 id="dialog-title"></h2></div>
+        <button type="button" class="icon-btn" id="dialog-close" title="Close">✕</button>
+      </div>
+      <div id="dialog-body"></div>
+      <p id="dialog-error" class="error-text"></p>
+      <div class="dialog-actions" id="dialog-actions"></div>
+    </div>
+  </dialog>
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/pages-core.js"></script>
+  <script src="js/pages-clinical.js"></script>
+  <script src="js/pages-services.js"></script>
+  <script src="js/pages-admin.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 
+from flask import current_app
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.extensions import db
@@ -30,7 +31,8 @@ class User(db.Model):
     # --- password helpers -------------------------------------------------
     def set_password(self, plain_password):
         """Hash the password (salted) before saving."""
-        self.password_hash = generate_password_hash(plain_password)
+        self.password_hash = generate_password_hash(
+            plain_password, method=current_app.config.get("PASSWORD_HASH_METHOD", "scrypt"))
 
     def check_password(self, plain_password):
         return check_password_hash(self.password_hash, plain_password)

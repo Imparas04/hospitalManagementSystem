@@ -20,6 +20,17 @@ def create_app(config_class=Config):
     jwt.init_app(app)
     cors.init_app(app, resources={r"/api/*": {"origins": app.config["CORS_ORIGINS"]}})
 
+    # Login brute-force protection (one guard per app, so tests never share counters)
+    from app.utils.login_guard import LoginGuard
+    app.extensions["login_guard"] = LoginGuard(app.config["LOGIN_MAX_ATTEMPTS"], app.config["LOGIN_LOCKOUT_MINUTES"])
+
+    # Logout: tokens in the blocklist are rejected even before they expire
+    from app.utils import token_blocklist
+
+    @jwt.token_in_blocklist_loader
+    def _is_token_revoked(jwt_header, jwt_payload):
+        return token_blocklist.is_revoked(jwt_payload["jti"])
+
     # Models must be imported so tables are known
     from app import models  # noqa: F401
 

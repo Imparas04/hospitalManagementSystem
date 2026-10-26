@@ -1,26 +1,32 @@
 # Testing Guide
 
-## Run tests
-From the project root in PowerShell:
+## Automated tests (backend)
 ```powershell
 cd backend
 .\venv\Scripts\python.exe -m pytest -q
 ```
-Alternatively, activate the virtual environment and run `python -m pytest -q`.
+Latest result of this review: **527 passed in about 70 seconds** (the tests use an in-memory SQLite database, never your MySQL data).
 
-## Previously reported result
-A test run during project maintenance reported:
-```text
-513 passed in 800.98s (0:13:20)
-```
-This is a historical result, not a guarantee for later changes. Re-run tests to verify the current checkout.
+Why it is fast now: `TestingConfig` sets `PASSWORD_HASH_METHOD = "pbkdf2:sha256:1"`. Every test creates users, and the
+real password hash (scrypt) is deliberately slow — the earlier run of 513 tests took about 13 minutes. Real servers still use scrypt.
 
-## Manual smoke checks
-- Start the backend and confirm it boots without errors.
-- Open the frontend in a browser and sign in using a configured development account.
-- Check dashboard, patient, doctor, and pharmacy pages with test data.
-- Check reports and CSV/Excel/PDF exports.
-- Confirm protected routes reject unauthorized requests.
-- Inspect browser developer tools and backend logs for failed requests.
+New tests in `tests/test_hardening_and_seed.py` cover: login lockout, logout, safe CORS default, bed gender info,
+the starter-data commands, and doctors looking up medicines.
 
-When reporting a failure, include the command, error output, and affected endpoint. Remove passwords, tokens, secret keys, and patient-identifying data before sharing logs.
+## Frontend check done during the review
+The website was loaded in a simulated browser (jsdom) against the real API and driven through: sign-in for all 7 roles,
+every menu page for every role, and the add/edit forms (departments, doctors + timetable, wards/beds, lab tests, medicines + stock,
+users, patients + history, appointments with free-slot chips + reschedule, admissions, lab workflow, prescriptions,
+billing + payment, triage → bed → resolve, change password, logout). That script is not part of the repository —
+please also click through the main screens yourself in a real browser.
+
+## Manual checklist
+- Start the backend; `GET /api/health` returns `ok`.
+- Sign in as admin → run *seed-demo-data* → open each menu page, none shows "Could not load".
+- Register a patient → book an appointment (pick a free time) → complete it → generate a bill → take a payment → download the PDF.
+- Record a triage case → *Allocate bed* → *Start treatment* → *Resolve*.
+- Order a lab test as a doctor → process it as a lab technician → review it as the doctor.
+- Write a prescription as a doctor → issue it as a pharmacist → stock goes down.
+- Sign in as each role and confirm they only see their own pages; try a wrong password 6 times (you get a wait message).
+- Download a report as CSV, Excel and PDF.
+When reporting a failure include the command, the error text and the endpoint; remove passwords, tokens and patient data first.
